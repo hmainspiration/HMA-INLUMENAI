@@ -1,0 +1,6 @@
+{
+  "name": "HMA INLUMENAI",
+  "description": "Sitio web institucional y ecosistema de 12 servicios para HMA INLUMENAI con Centro Multimedia integrado (reproductor de audio, video y fotos), línea de tiempo de 10 Años (El Reloj de las 12 H) y conexión directa a WhatsApp.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

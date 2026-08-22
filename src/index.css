@@ -1,0 +1,117 @@
+@import "tailwindcss";
+
+@variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    --font-heading: 'Outfit', 'Plus Jakarta Sans', 'Aeonik', sans-serif;
+    --font-body: 'Nunito', sans-serif;
+    
+    /* Institucional */
+    --color-inst-black: #111827;
+    --color-inst-white: #FFFFFF;
+    --color-inst-gray: #6B7280;
+    --color-inst-lightgray: #E5E7EB;
+
+    /* 01 - Identidad & Arte */
+    --color-cyan-light: #40C7E2;
+    --color-cyan-main: #00B4D8;
+    --color-cyan-dark: #007F98;
+
+    /* 02 - Sonido & Multimedia */
+    --color-violet-light: #9C61CF;
+    --color-violet-main: #7B2CBF;
+    --color-violet-dark: #581F87;
+
+    /* 03 - Fe, Legado & Palabra */
+    --color-gold-light: #F8BC5A;
+    --color-gold-main: #F5A623;
+    --color-gold-dark: #B97808;
+
+    /* 04 - Software & Producción */
+    --color-emerald-light: #4CCAA0;
+    --color-emerald-main: #10B981;
+    --color-emerald-dark: #087A57;
+  }
+
+  body {
+    font-family: var(--font-body);
+    color: #111827;
+    background-color: #FAFAFC;
+    overflow-x: hidden;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  .dark body,
+  html.dark body {
+    color: #F3F4F6;
+    background-color: #0B0F19;
+  }
+
+  h1, h2, h3, h4, h5, h6, .font-heading {
+    font-family: var(--font-heading);
+    letter-spacing: -0.02em;
+  }
+}
+
+/* Custom glow and glass utilities */
+.glow-cyan:hover {
+  box-shadow: 0 10px 30px -5px rgba(0, 180, 216, 0.28), 0 0 0 1px rgba(0, 180, 216, 0.4);
+}
+
+.glow-violet:hover {
+  box-shadow: 0 10px 30px -5px rgba(123, 44, 191, 0.28), 0 0 0 1px rgba(123, 44, 191, 0.4);
+}
+
+.glow-gold:hover {
+  box-shadow: 0 10px 30px -5px rgba(245, 166, 35, 0.28), 0 0 0 1px rgba(245, 166, 35, 0.4);
+}
+
+.glow-emerald:hover {
+  box-shadow: 0 10px 30px -5px rgba(16, 185, 129, 0.28), 0 0 0 1px rgba(16, 185, 129, 0.4);
+}
+
+/* Glass effect */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.dark .glass-panel {
+  background: rgba(17, 24, 39, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F3F4F6;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #111827;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D1D5DB;
+  border-radius: 9999px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #374151;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9CA3AF;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #4B5563;
+}
+
