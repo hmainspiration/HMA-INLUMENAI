@@ -136,7 +136,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenDeploymentGuide }) => {
             <p>© 2016 – 2026 HMA INLUMENAI. Todos los derechos reservados.</p>
             <span className="hidden sm:inline text-gray-600">·</span>
             <span className="px-2 py-0.5 rounded-full bg-gray-800 text-[#11D7B6] font-mono text-[10px] font-bold border border-gray-700">
-              v1.16.0 · Animación Vectorial Calibrada
+              v1.17.0 · Logotipo Oficial y Favicon Calibrado
             </span>
           </div>
           
