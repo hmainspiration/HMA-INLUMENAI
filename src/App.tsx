@@ -14,7 +14,7 @@ import { useData } from './context/DataContext';
 import { MessageSquare } from 'lucide-react';
 import { getWhatsAppUrl } from './data/socialLinks';
 
-const CURRENT_VERSION = 'v2.3.2';
+const CURRENT_VERSION = 'v2.3.3';
 const ADMIN_AUTH_SESSION_KEY = 'hma_admin_auth_v1';
 
 export default function App() {

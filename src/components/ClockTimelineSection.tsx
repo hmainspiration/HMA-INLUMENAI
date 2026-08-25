@@ -313,7 +313,7 @@ export const ClockTimelineSection: React.FC = () => {
                   {/* Custom uploaded logo positioned on the right */}
                   <AdaptiveLogo
                     src={currentMilestone.customLogo || `/logos/timeline/H${currentMilestone.year.slice(-2)}.svg`}
-                    className="shrink-0 w-28 h-28 sm:w-36 sm:h-36 opacity-80 mix-blend-multiply dark:mix-blend-normal hidden sm:block"
+                    className="shrink-0 w-24 h-24 sm:w-36 sm:h-36 opacity-80 mix-blend-multiply dark:mix-blend-normal self-end sm:self-auto"
                     maskPosition="bottom right"
                   />
                 </div>
@@ -403,7 +403,7 @@ export const ClockTimelineSection: React.FC = () => {
                         {/* Custom uploaded logo positioned on the right */}
                         <AdaptiveLogo
                           src={m.customLogo || `/logos/timeline/H${m.year.slice(-2)}.svg`}
-                          className="shrink-0 w-24 h-24 sm:w-32 sm:h-32 opacity-80 mix-blend-multiply dark:mix-blend-normal hidden sm:block"
+                          className="shrink-0 w-24 h-24 sm:w-32 sm:h-32 opacity-80 mix-blend-multiply dark:mix-blend-normal self-end sm:self-auto"
                           maskPosition="bottom right"
                         />
                       </div>
