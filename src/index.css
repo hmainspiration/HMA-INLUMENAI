@@ -7,31 +7,33 @@
     --font-heading: 'Outfit', 'Plus Jakarta Sans', 'Aeonik', sans-serif;
     --font-body: 'Nunito', sans-serif;
     
-    /* Institucional */
-    --color-inst-black: #111827;
+    /* Paleta Ficha Técnica HMA INLUMENAI */
+    --color-n-dark: #060C04;
+    --color-1-transcendence: #315629;
+    --color-2-watermark: #75C962;
+    --color-3-software: #11D7B6;
+    --color-4-music: #16A097;
+    --color-5-design: #2280AC;
+    --color-6-cinema: #2D60C1;
+    --color-7-photography: #3D80FD;
+    --color-8-temples: #7D77B0;
+    --color-9-type: #AE7176;
+    --color-10-visuals: #D96B43;
+    --color-11-print: #C99700;
+    --color-12-publishing: #D7BB11;
+    --color-b-light: #FEFAE8;
+
+    /* Institucional & Clústeres */
+    --color-inst-black: #060C04;
     --color-inst-white: #FFFFFF;
     --color-inst-gray: #6B7280;
     --color-inst-lightgray: #E5E7EB;
 
-    /* 01 - Identidad & Arte */
-    --color-cyan-light: #40C7E2;
-    --color-cyan-main: #00B4D8;
-    --color-cyan-dark: #007F98;
-
-    /* 02 - Sonido & Multimedia */
-    --color-violet-light: #9C61CF;
-    --color-violet-main: #7B2CBF;
-    --color-violet-dark: #581F87;
-
-    /* 03 - Fe, Legado & Palabra */
-    --color-gold-light: #F8BC5A;
-    --color-gold-main: #F5A623;
-    --color-gold-dark: #B97808;
-
-    /* 04 - Software & Producción */
-    --color-emerald-light: #4CCAA0;
-    --color-emerald-main: #10B981;
-    --color-emerald-dark: #087A57;
+    /* Clústeres cromáticos */
+    --cluster-01: #2280AC;
+    --cluster-02: #3D80FD;
+    --cluster-03: #D7BB11;
+    --cluster-04: #11D7B6;
   }
 
   body {
@@ -45,7 +47,7 @@
   .dark body,
   html.dark body {
     color: #F3F4F6;
-    background-color: #0B0F19;
+    background-color: #060C04;
   }
 
   h1, h2, h3, h4, h5, h6, .font-heading {
@@ -56,19 +58,19 @@
 
 /* Custom glow and glass utilities */
 .glow-cyan:hover {
-  box-shadow: 0 10px 30px -5px rgba(0, 180, 216, 0.28), 0 0 0 1px rgba(0, 180, 216, 0.4);
+  box-shadow: 0 10px 30px -5px rgba(17, 215, 182, 0.35), 0 0 0 1px rgba(17, 215, 182, 0.5);
 }
 
-.glow-violet:hover {
-  box-shadow: 0 10px 30px -5px rgba(123, 44, 191, 0.28), 0 0 0 1px rgba(123, 44, 191, 0.4);
+.glow-blue:hover {
+  box-shadow: 0 10px 30px -5px rgba(61, 128, 253, 0.35), 0 0 0 1px rgba(61, 128, 253, 0.5);
 }
 
 .glow-gold:hover {
-  box-shadow: 0 10px 30px -5px rgba(245, 166, 35, 0.28), 0 0 0 1px rgba(245, 166, 35, 0.4);
+  box-shadow: 0 10px 30px -5px rgba(215, 187, 17, 0.35), 0 0 0 1px rgba(215, 187, 17, 0.5);
 }
 
 .glow-emerald:hover {
-  box-shadow: 0 10px 30px -5px rgba(16, 185, 129, 0.28), 0 0 0 1px rgba(16, 185, 129, 0.4);
+  box-shadow: 0 10px 30px -5px rgba(117, 201, 98, 0.35), 0 0 0 1px rgba(117, 201, 98, 0.5);
 }
 
 /* Glass effect */
@@ -79,9 +81,75 @@
 }
 
 .dark .glass-panel {
-  background: rgba(17, 24, 39, 0.85);
+  background: rgba(14, 23, 18, 0.85);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+}
+
+/* Aurial Animated Background Spheres (aurial.html) */
+@keyframes float-cyan {
+  0%, 100% {
+    transform: translate(0vw, 0vh) scale(1);
+    filter: blur(100px) brightness(1);
+    opacity: 0.7;
+  }
+  25% {
+    transform: translate(-30vw, 24vh) scale(1.3);
+    filter: blur(120px) brightness(1.35);
+    opacity: 0.85;
+  }
+  50% {
+    transform: translate(-45vw, 38vh) scale(0.85);
+    filter: blur(90px) brightness(0.75);
+    opacity: 0.5;
+  }
+  75% {
+    transform: translate(-20vw, 15vh) scale(1.25);
+    filter: blur(110px) brightness(1.25);
+    opacity: 0.8;
+  }
+}
+
+@keyframes float-matrix {
+  0%, 100% {
+    transform: translate(0vw, 0vh) scale(1);
+    filter: blur(100px) brightness(1);
+    opacity: 0.7;
+  }
+  25% {
+    transform: translate(30vw, -24vh) scale(1.3);
+    filter: blur(120px) brightness(1.35);
+    opacity: 0.85;
+  }
+  50% {
+    transform: translate(45vw, -38vh) scale(0.85);
+    filter: blur(90px) brightness(0.75);
+    opacity: 0.5;
+  }
+  75% {
+    transform: translate(20vw, -15vh) scale(1.25);
+    filter: blur(110px) brightness(1.25);
+    opacity: 0.8;
+  }
+}
+
+.animate-aurial-cyan {
+  animation: float-cyan 18s ease-in-out infinite alternate;
+}
+
+.animate-aurial-matrix {
+  animation: float-matrix 22s ease-in-out infinite alternate;
+}
+
+/* Texture dot grid for aurial */
+.aurial-grid-bg {
+  background-image: radial-gradient(rgba(17, 215, 182, 0.18) 1px, transparent 1px);
+  background-size: 38px 38px;
+}
+
+.dark .aurial-grid-bg {
+  background-image: radial-gradient(rgba(17, 215, 182, 0.12) 1px, transparent 1px);
+  background-size: 38px 38px;
 }
 
 /* Custom scrollbar */
@@ -95,7 +163,7 @@
 }
 
 .dark ::-webkit-scrollbar-track {
-  background: #111827;
+  background: #060C04;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -104,7 +172,7 @@
 }
 
 .dark ::-webkit-scrollbar-thumb {
-  background: #374151;
+  background: #1F2D24;
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -112,6 +180,5 @@
 }
 
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: #4B5563;
+  background: #2D4234;
 }
-

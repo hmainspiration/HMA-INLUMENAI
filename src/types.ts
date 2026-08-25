@@ -56,6 +56,14 @@ export interface ServiceItem {
   isPopular?: boolean;
   defaultWhatsAppMessage: string;
   mediaItems?: MediaItem[];
+  // Ficha técnica de color y geometría
+  colorHex?: string;
+  colorPosition?: string;
+  colorName?: string;
+  rgb?: string;
+  cmyk?: string;
+  concept?: string;
+  quadrant?: string;
 }
 
 export interface ClockHourMilestone {
