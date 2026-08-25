@@ -64,6 +64,20 @@ export interface ServiceItem {
   cmyk?: string;
   concept?: string;
   quadrant?: string;
+  // Admin dynamic state
+  isActive?: boolean;
+  underConstructionMessage?: string;
+  customSvg?: string; // Custom SVG string uploaded or pasted by admin
+}
+
+export interface SiteConfig {
+  motto: string;
+  whatsappPhone: string;
+  whatsappDisplay: string;
+  facebookUrl: string;
+  instagramUrl: string;
+  youtubeUrl: string;
+  version: string;
 }
 
 export interface ClockHourMilestone {
@@ -92,3 +106,4 @@ export interface PortfolioItem {
   badgeColor: string;
   externalLink?: string; // Link to Facebook albums, Behance, etc.
 }
+

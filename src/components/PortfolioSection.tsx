@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PORTFOLIO_ITEMS } from '../data/portfolioData';
+import { useData } from '../context/DataContext';
 import { CLUSTERS } from '../data/servicesData';
 import { Sparkles, ArrowRight } from 'lucide-react';
 
@@ -8,9 +8,10 @@ interface PortfolioSectionProps {
 }
 
 export const PortfolioSection: React.FC<PortfolioSectionProps> = ({ onSelectServiceRequest }) => {
+  const { portfolioItems } = useData();
   const [selectedCluster, setSelectedCluster] = useState<string>('all');
 
-  const filteredItems = PORTFOLIO_ITEMS.filter((item) => {
+  const filteredItems = portfolioItems.filter((item) => {
     return selectedCluster === 'all' || item.clusterId === selectedCluster;
   });
 
@@ -49,22 +50,13 @@ export const PortfolioSection: React.FC<PortfolioSectionProps> = ({ onSelectServ
               <button
                 key={cluster.id}
                 onClick={() => setSelectedCluster(cluster.id)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   selectedCluster === cluster.id
-                    ? 'text-white shadow-xs'
+                    ? 'bg-[#111827] dark:bg-white text-white dark:text-gray-900 shadow-xs'
                     : 'bg-gray-100 dark:bg-[#151D2C] text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-800'
                 }`}
-                style={{
-                  backgroundColor: selectedCluster === cluster.id ? cluster.mainColor : undefined,
-                }}
               >
-                <span
-                  className="w-2 h-2 rounded-full"
-                  style={{
-                    backgroundColor: selectedCluster === cluster.id ? '#FFFFFF' : cluster.mainColor,
-                  }}
-                />
-                <span>{cluster.shortName}</span>
+                <span>{cluster.number} · {cluster.shortName}</span>
               </button>
             ))}
           </div>

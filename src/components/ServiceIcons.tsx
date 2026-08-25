@@ -4,13 +4,24 @@ interface ServiceIconProps {
   type: string;
   color?: string;
   className?: string;
+  customSvg?: string;
 }
 
 export const ServiceIcon: React.FC<ServiceIconProps> = ({
   type,
   color = '#00B4D8',
   className = 'w-10 h-10',
+  customSvg,
 }) => {
+  if (customSvg && customSvg.trim().startsWith('<svg')) {
+    return (
+      <div 
+        className={`inline-flex items-center justify-center [&>svg]:w-full [&>svg]:h-full [&>svg]:max-w-full [&>svg]:max-h-full ${className}`}
+        dangerouslySetInnerHTML={{ __html: customSvg }}
+      />
+    );
+  }
+
   switch (type) {
     // 01 — HMA DESIGN (01)
     case 'design':

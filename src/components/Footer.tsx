@@ -5,10 +5,10 @@ import { MessageSquare, HelpCircle, ArrowUp, Sparkles } from 'lucide-react';
 import { SOCIAL_LINKS } from '../data/socialLinks';
 
 interface FooterProps {
-  onOpenDeploymentGuide: () => void;
+  onOpenAdmin?: () => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onOpenDeploymentGuide }) => {
+export const Footer: React.FC<FooterProps> = ({ onOpenAdmin }) => {
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -61,31 +61,27 @@ export const Footer: React.FC<FooterProps> = ({ onOpenDeploymentGuide }) => {
           {/* Col 2: 4 Clusters Links */}
           <div className="md:col-span-4">
             <h4 className="text-xs font-black uppercase tracking-wider text-gray-400 font-heading mb-4">
-              Clústeres Cromáticos HMA
+              Clústeres de Servicios HMA
             </h4>
-            <ul className="space-y-2 text-xs">
-              <li className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#00B4D8] shrink-0" />
-                <a href="#servicios" className="text-gray-300 hover:text-white transition-colors">
-                  01 — Identidad & Arte (HMA DESIGN, HMA TYPE, HMA VISUALS)
+            <ul className="space-y-2.5 text-xs">
+              <li>
+                <a href="#servicios" className="text-gray-300 hover:text-white transition-colors block py-0.5">
+                  <span className="font-semibold text-gray-200">01</span> — Identidad & Arte (HMA DESIGN, HMA TYPE, HMA VISUALS)
                 </a>
               </li>
-              <li className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#7B2CBF] shrink-0" />
-                <a href="#servicios" className="text-gray-300 hover:text-white transition-colors">
-                  02 — Audiovisual & Sonido (HMA PHOTOGRAPHY, HMA MUSIC, HMA CINEMA)
+              <li>
+                <a href="#servicios" className="text-gray-300 hover:text-white transition-colors block py-0.5">
+                  <span className="font-semibold text-gray-200">02</span> — Audiovisual & Sonido (HMA PHOTOGRAPHY, HMA MUSIC, HMA CINEMA)
                 </a>
               </li>
-              <li className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#F5A623] shrink-0" />
-                <a href="#servicios" className="text-gray-300 hover:text-white transition-colors">
-                  03 — Fe, Palabra & Legado (HMA TEMPLES, HMA PUBLISHING, HMA TRANSCENDENCE)
+              <li>
+                <a href="#servicios" className="text-gray-300 hover:text-white transition-colors block py-0.5">
+                  <span className="font-semibold text-gray-200">03</span> — Fe, Palabra & Legado (HMA TEMPLES, HMA PUBLISHING, HMA TRANSCENDENCE)
                 </a>
               </li>
-              <li className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#10B981] shrink-0" />
-                <a href="#servicios" className="text-gray-300 hover:text-white transition-colors">
-                  04 — Tecnología & Producción Física (HMA WATERMARK, HMA SOFTWARE, HMA PRINT)
+              <li>
+                <a href="#servicios" className="text-gray-300 hover:text-white transition-colors block py-0.5">
+                  <span className="font-semibold text-gray-200">04</span> — Tecnología & Producción Física (HMA WATERMARK, HMA SOFTWARE, HMA PRINT)
                 </a>
               </li>
             </ul>
@@ -119,13 +115,23 @@ export const Footer: React.FC<FooterProps> = ({ onOpenDeploymentGuide }) => {
               </li>
             </ul>
 
-            <button
-              onClick={onOpenDeploymentGuide}
-              className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-gray-800 hover:bg-gray-700 text-xs font-bold text-gray-200 border border-gray-700 transition-colors cursor-pointer"
-            >
-              <HelpCircle className="w-3.5 h-3.5 text-[#00B4D8]" />
-              <span>Ver Guía de Despliegue</span>
-            </button>
+            {onOpenAdmin ? (
+              <button
+                onClick={onOpenAdmin}
+                className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-gray-800/80 hover:bg-gray-700 text-xs font-bold text-gray-300 hover:text-white border border-gray-700/80 transition-colors cursor-pointer"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-[#11D7B6]" />
+                <span>Panel de Administración</span>
+              </button>
+            ) : (
+              <a
+                href="/admin"
+                className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-gray-800/80 hover:bg-gray-700 text-xs font-bold text-gray-300 hover:text-white border border-gray-700/80 transition-colors"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-[#11D7B6]" />
+                <span>Acceso Administrador</span>
+              </a>
+            )}
           </div>
 
         </div>
@@ -136,7 +142,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenDeploymentGuide }) => {
             <p>© 2016 – 2026 HMA INLUMENAI. Todos los derechos reservados.</p>
             <span className="hidden sm:inline text-gray-600">·</span>
             <span className="px-2 py-0.5 rounded-full bg-gray-800 text-[#11D7B6] font-mono text-[10px] font-bold border border-gray-700">
-              v1.17.0 · Logotipo Oficial y Favicon Calibrado
+              v2.2.1 · Panel Admin & Control Total
             </span>
           </div>
           

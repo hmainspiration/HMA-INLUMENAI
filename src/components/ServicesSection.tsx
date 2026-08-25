@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { SERVICES, CLUSTERS, TECHNICAL_PALETTE } from '../data/servicesData';
+import { useData } from '../context/DataContext';
+import { CLUSTERS } from '../data/servicesData';
 import { ClusterId, ServiceItem, MediaItem } from '../types';
 import { ServiceIcon } from './ServiceIcons';
 import { getWhatsAppUrl } from '../data/socialLinks';
@@ -8,31 +9,30 @@ import {
   ArrowUpRight, 
   Sparkles, 
   Check, 
-  HelpCircle,
   Play,
   Film,
   Music,
   Image as ImageIcon,
   LayoutGrid,
-  FileCode2
+  FileCode2,
+  AlertTriangle
 } from 'lucide-react';
 
 interface ServicesSectionProps {
   onSelectService: (service: ServiceItem) => void;
   onOpenMedia: (service: ServiceItem, initialMedia?: MediaItem) => void;
-  onOpenMediaGuide: () => void;
 }
 
 export const ServicesSection: React.FC<ServicesSectionProps> = ({ 
   onSelectService,
   onOpenMedia,
-  onOpenMediaGuide
 }) => {
+  const { services } = useData();
   const [selectedCluster, setSelectedCluster] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [viewMode, setViewMode] = useState<'isotypes' | 'catalog'>('isotypes');
 
-  const filteredServices = SERVICES.filter((service) => {
+  const filteredServices = services.filter((service) => {
     const matchesCluster = selectedCluster === 'all' || service.clusterId === selectedCluster;
     const matchesSearch =
       service.nameEn.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -68,7 +68,7 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
 
           {/* Controls: View Switcher & Search */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
-            {/* View Mode Toggle (hma_inlumenai_isotypes vs Commercial Catalog) */}
+            {/* View Mode Toggle */}
             <div className="inline-flex items-center p-1 rounded-xl bg-white dark:bg-[#0E1712] border border-gray-200 dark:border-gray-800 shadow-xs">
               <button
                 onClick={() => setViewMode('isotypes')}
@@ -96,14 +96,6 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
               </button>
             </div>
 
-            <button
-              onClick={onOpenMediaGuide}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-800 bg-white dark:bg-[#0E1712] hover:bg-gray-50 dark:hover:bg-[#15231B] text-xs font-bold text-gray-700 dark:text-gray-200 shadow-xs transition-colors cursor-pointer"
-            >
-              <HelpCircle className="w-4 h-4 text-[#11D7B6]" />
-              <span>¿Cómo subir mis enlaces?</span>
-            </button>
-
             <div className="w-full sm:w-56">
               <input
                 type="text"
@@ -126,28 +118,19 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
                 : 'bg-white dark:bg-[#0E1712] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#15231B] border border-gray-200 dark:border-gray-800'
             }`}
           >
-            Todos ({SERVICES.length})
+            Todos ({services.length})
           </button>
 
           {Object.values(CLUSTERS).map((cluster) => (
             <button
               key={cluster.id}
               onClick={() => setSelectedCluster(cluster.id)}
-              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 cursor-pointer ${
+              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
                 selectedCluster === cluster.id
-                  ? 'text-white shadow-sm'
+                  ? 'bg-[#060C04] dark:bg-[#FEFAE8] text-white dark:text-[#060C04] shadow-sm'
                   : 'bg-white dark:bg-[#0E1712] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#15231B] border border-gray-200 dark:border-gray-800'
               }`}
-              style={{
-                backgroundColor: selectedCluster === cluster.id ? cluster.mainColor : undefined,
-              }}
             >
-              <span
-                className="w-2 h-2 rounded-full"
-                style={{
-                  backgroundColor: selectedCluster === cluster.id ? '#FFFFFF' : cluster.mainColor,
-                }}
-              />
               <span>{cluster.number} · {cluster.shortName}</span>
             </button>
           ))}
@@ -169,30 +152,36 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
           </div>
         ) : viewMode === 'isotypes' ? (
           /* ========================================================= */
-          /* PRESENTACIÓN TÉCNICA DE LOS 12 ISOTIPOS (hma_inlumenai_isotypes.html) */
+          /* PRESENTACIÓN TÉCNICA DE LOS 12 ISOTIPOS                   */
           /* ========================================================= */
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7">
             {filteredServices.map((service) => {
               const cluster = getClusterColor(service.clusterId);
               const colorHex = service.colorHex || cluster.mainColor;
-              const whatsappUrl = getWhatsAppUrl(service.defaultWhatsAppMessage);
+              const isOnline = service.isActive !== false;
+              const whatsappUrl = isOnline 
+                ? getWhatsAppUrl(service.defaultWhatsAppMessage)
+                : getWhatsAppUrl(`Hola HMA Inlumenai, quisiera consultar sobre la disponibilidad futura del servicio de "${service.nameEn}".`);
 
               return (
                 <div
                   key={service.id}
                   id={`isotipo-${service.id}`}
-                  className="bg-white dark:bg-[#0E1712] rounded-2xl border border-gray-200/90 dark:border-gray-800 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 relative overflow-hidden group shadow-xs"
+                  className={`bg-white dark:bg-[#0E1712] rounded-2xl border border-gray-200/90 dark:border-gray-800 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 relative overflow-hidden group shadow-xs ${
+                    !isOnline ? 'opacity-90' : ''
+                  }`}
                   style={{
-                    borderTop: `4px solid ${colorHex}`,
+                    borderTop: `4px solid ${isOnline ? colorHex : '#F59E0B'}`,
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = `${colorHex}88`;
-                    e.currentTarget.style.borderTopColor = colorHex;
-                    e.currentTarget.style.boxShadow = `0 16px 32px -8px ${colorHex}30, 0 0 0 1px ${colorHex}40`;
+                    const borderColor = isOnline ? colorHex : '#F59E0B';
+                    e.currentTarget.style.borderColor = `${borderColor}88`;
+                    e.currentTarget.style.borderTopColor = borderColor;
+                    e.currentTarget.style.boxShadow = `0 16px 32px -8px ${borderColor}30, 0 0 0 1px ${borderColor}40`;
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.borderColor = '';
-                    e.currentTarget.style.borderTopColor = colorHex;
+                    e.currentTarget.style.borderTopColor = isOnline ? colorHex : '#F59E0B';
                     e.currentTarget.style.boxShadow = '';
                   }}
                 >
@@ -211,18 +200,25 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
                         </span>
                       </div>
 
-                      {/* Technical Color Chip Badge */}
-                      <div 
-                        className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border"
-                        style={{
-                          backgroundColor: `${colorHex}15`,
-                          color: colorHex,
-                          borderColor: `${colorHex}35`,
-                        }}
-                      >
-                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: colorHex }} />
-                        <span>{colorHex}</span>
-                      </div>
+                      {/* Status / Color Chip Badge */}
+                      {!isOnline ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                          <AlertTriangle className="w-3 h-3" />
+                          <span>En Construcción</span>
+                        </span>
+                      ) : (
+                        <div 
+                          className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border"
+                          style={{
+                            backgroundColor: `${colorHex}15`,
+                            color: colorHex,
+                            borderColor: `${colorHex}35`,
+                          }}
+                        >
+                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: colorHex }} />
+                          <span>{colorHex}</span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Central Hero Box for the Isotype */}
@@ -247,6 +243,7 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
                         <ServiceIcon 
                           type={service.iconType} 
                           color={colorHex} 
+                          customSvg={service.customSvg}
                           className="w-full h-full object-contain" 
                         />
                       </div>
@@ -260,25 +257,36 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
                       {service.nameEs}
                     </p>
 
-                    {/* Geometric Concept Strip */}
-                    {service.concept && (
-                      <div className="mb-3 px-3 py-1.5 rounded-lg bg-gray-50 dark:bg-[#15231B] border border-gray-200/80 dark:border-gray-800 text-[11px] text-gray-700 dark:text-gray-300 font-medium flex items-center justify-between">
-                        <span className="text-gray-400 dark:text-gray-500">Concepto:</span>
-                        <span className="font-bold text-gray-900 dark:text-[#FEFAE8]">{service.concept}</span>
+                    {/* Under construction banner if disabled */}
+                    {!isOnline ? (
+                      <div className="mb-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-300 text-xs">
+                        <p className="font-semibold leading-relaxed">
+                          {service.underConstructionMessage || 'Este servicio se encuentra en fase de actualización y mejoras. Próximamente disponible.'}
+                        </p>
                       </div>
-                    )}
+                    ) : (
+                      <>
+                        {/* Geometric Concept Strip */}
+                        {service.concept && (
+                          <div className="mb-3 px-3 py-1.5 rounded-lg bg-gray-50 dark:bg-[#15231B] border border-gray-200/80 dark:border-gray-800 text-[11px] text-gray-700 dark:text-gray-300 font-medium flex items-center justify-between">
+                            <span className="text-gray-400 dark:text-gray-500">Concepto:</span>
+                            <span className="font-bold text-gray-900 dark:text-[#FEFAE8]">{service.concept}</span>
+                          </div>
+                        )}
 
-                    {/* Technical Color Coordinates Row */}
-                    <div className="grid grid-cols-2 gap-2 text-[10px] font-mono text-gray-500 dark:text-gray-400 bg-gray-50/70 dark:bg-[#121C15]/70 p-2.5 rounded-lg border border-gray-100 dark:border-gray-800/60 mb-4">
-                      <div>
-                        <span className="text-gray-400 dark:text-gray-500">RGB: </span>
-                        <span className="font-semibold text-gray-800 dark:text-gray-200">{service.rgb || '—'}</span>
-                      </div>
-                      <div>
-                        <span className="text-gray-400 dark:text-gray-500">CMYK: </span>
-                        <span className="font-semibold text-gray-800 dark:text-gray-200">{service.cmyk || '—'}</span>
-                      </div>
-                    </div>
+                        {/* Technical Color Coordinates Row */}
+                        <div className="grid grid-cols-2 gap-2 text-[10px] font-mono text-gray-500 dark:text-gray-400 bg-gray-50/70 dark:bg-[#121C15]/70 p-2.5 rounded-lg border border-gray-100 dark:border-gray-800/60 mb-4">
+                          <div>
+                            <span className="text-gray-400 dark:text-gray-500">RGB: </span>
+                            <span className="font-semibold text-gray-800 dark:text-gray-200">{service.rgb || '—'}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-400 dark:text-gray-500">CMYK: </span>
+                            <span className="font-semibold text-gray-800 dark:text-gray-200">{service.cmyk || '—'}</span>
+                          </div>
+                        </div>
+                      </>
+                    )}
 
                     {/* Media trigger banner if items exist */}
                     {service.mediaItems && service.mediaItems.length > 0 && (
@@ -319,11 +327,13 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
                       href={whatsappUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs text-white transition-all shadow-xs active:scale-95 hover:brightness-110"
-                      style={{ backgroundColor: colorHex }}
+                      className={`flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs text-white transition-all shadow-xs active:scale-95 hover:brightness-110 ${
+                        !isOnline ? 'bg-amber-600 hover:bg-amber-500' : ''
+                      }`}
+                      style={isOnline ? { backgroundColor: colorHex } : undefined}
                     >
                       <MessageSquare className="w-4 h-4 fill-white/20" />
-                      <span>Cotizar en WhatsApp</span>
+                      <span>{isOnline ? 'Cotizar en WhatsApp' : 'Consultar Disponibilidad'}</span>
                     </a>
 
                     <button
@@ -347,16 +357,22 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
             {filteredServices.map((service) => {
               const cluster = getClusterColor(service.clusterId);
               const colorHex = service.colorHex || cluster.mainColor;
-              const whatsappUrl = getWhatsAppUrl(service.defaultWhatsAppMessage);
+              const isOnline = service.isActive !== false;
+              const whatsappUrl = isOnline 
+                ? getWhatsAppUrl(service.defaultWhatsAppMessage)
+                : getWhatsAppUrl(`Hola HMA Inlumenai, quisiera consultar sobre la disponibilidad futura del servicio de "${service.nameEn}".`);
 
               return (
                 <div
                   key={service.id}
                   id={`servicio-${service.id}`}
-                  className="bg-white dark:bg-[#0E1712] rounded-2xl border border-gray-200/90 dark:border-gray-800 p-6 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-xl relative group shadow-xs"
+                  className={`bg-white dark:bg-[#0E1712] rounded-2xl border border-gray-200/90 dark:border-gray-800 p-6 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-xl relative group shadow-xs ${
+                    !isOnline ? 'opacity-90' : ''
+                  }`}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = `${colorHex}66`;
-                    e.currentTarget.style.boxShadow = `0 14px 30px -6px ${colorHex}25, 0 0 0 1px ${colorHex}40`;
+                    const borderColor = isOnline ? colorHex : '#F59E0B';
+                    e.currentTarget.style.borderColor = `${borderColor}66`;
+                    e.currentTarget.style.boxShadow = `0 14px 30px -6px ${borderColor}25, 0 0 0 1px ${borderColor}40`;
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.borderColor = '';
@@ -385,11 +401,16 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
                         </span>
                       </div>
 
-                      {service.isPopular && (
+                      {!isOnline ? (
+                        <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1">
+                          <AlertTriangle className="w-3 h-3" />
+                          En Construcción
+                        </span>
+                      ) : service.isPopular ? (
                         <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-amber-700 flex items-center gap-1">
                           ★ Destacado
                         </span>
-                      )}
+                      ) : null}
                     </div>
 
                     {/* Icon with Technical Color Accent */}
@@ -401,7 +422,12 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
                           border: `1px solid ${colorHex}30`,
                         }}
                       >
-                        <ServiceIcon type={service.iconType} color={colorHex} className="w-8 h-8" />
+                        <ServiceIcon 
+                          type={service.iconType} 
+                          color={colorHex} 
+                          customSvg={service.customSvg}
+                          className="w-8 h-8" 
+                        />
                       </div>
                       <div>
                         <h3 className="text-xl font-black text-[#060C04] dark:text-[#FEFAE8] font-heading tracking-tight leading-tight">
@@ -417,6 +443,15 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
                     <p className="text-xs font-medium text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-[#15231B] p-2.5 rounded-xl mb-4 border border-gray-100 dark:border-gray-800 italic">
                       "{service.tagline}"
                     </p>
+
+                    {/* Under construction alert if disabled */}
+                    {!isOnline && (
+                      <div className="mb-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-300 text-xs">
+                        <p className="font-semibold leading-relaxed">
+                          {service.underConstructionMessage || 'Este servicio se encuentra en fase de actualización y mejoras. Próximamente disponible.'}
+                        </p>
+                      </div>
+                    )}
 
                     {/* Description */}
                     <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed mb-4">
@@ -475,11 +510,13 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
                       href={whatsappUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs text-white transition-all shadow-sm active:scale-95 hover:brightness-110"
-                      style={{ backgroundColor: colorHex }}
+                      className={`flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs text-white transition-all shadow-sm active:scale-95 hover:brightness-110 ${
+                        !isOnline ? 'bg-amber-600 hover:bg-amber-500' : ''
+                      }`}
+                      style={isOnline ? { backgroundColor: colorHex } : undefined}
                     >
                       <MessageSquare className="w-4 h-4 fill-white/20" />
-                      <span>Cotizar en WhatsApp</span>
+                      <span>{isOnline ? 'Cotizar en WhatsApp' : 'Consultar Disponibilidad'}</span>
                     </a>
 
                     <button
@@ -501,3 +538,4 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
     </section>
   );
 };
+

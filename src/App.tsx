@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { ServicesSection } from './components/ServicesSection';
@@ -6,21 +6,74 @@ import { ClockTimelineSection } from './components/ClockTimelineSection';
 import { PortfolioSection } from './components/PortfolioSection';
 import { Footer } from './components/Footer';
 import { QuoteModal } from './components/QuoteModal';
-import { DeploymentGuideModal } from './components/DeploymentGuideModal';
 import { MediaShowcaseModal } from './components/MediaShowcaseModal';
-import { MediaOrientationGuideModal } from './components/MediaOrientationGuideModal';
+import { AdminLogin } from './components/admin/AdminLogin';
+import { AdminPanel } from './components/admin/AdminPanel';
 import { ServiceItem, MediaItem } from './types';
-import { MessageSquare, HelpCircle, Sparkles, Play } from 'lucide-react';
+import { MessageSquare } from 'lucide-react';
 import { getWhatsAppUrl } from './data/socialLinks';
 
-const CURRENT_VERSION = 'v2.0.0';
+const CURRENT_VERSION = 'v2.2.1';
+const ADMIN_AUTH_SESSION_KEY = 'hma_admin_auth_v1';
 
 export default function App() {
   const [selectedService, setSelectedService] = useState<ServiceItem | null>(null);
-  const [isDeploymentGuideOpen, setIsDeploymentGuideOpen] = useState<boolean>(false);
-  const [isMediaGuideOpen, setIsMediaGuideOpen] = useState<boolean>(false);
   const [mediaShowcaseService, setMediaShowcaseService] = useState<ServiceItem | null>(null);
   const [initialMediaItem, setInitialMediaItem] = useState<MediaItem | null>(null);
+
+  // Admin routing & auth state
+  const [isAdminView, setIsAdminView] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const path = window.location.pathname.toLowerCase();
+      const hash = window.location.hash.toLowerCase();
+      return path === '/admin' || path.startsWith('/admin/') || hash === '#admin' || hash.startsWith('#admin/');
+    }
+    return false;
+  });
+
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getItem(ADMIN_AUTH_SESSION_KEY) === 'true';
+    }
+    return false;
+  });
+
+  // Listen to browser navigation (back/forward, URL hash change)
+  useEffect(() => {
+    const checkRoute = () => {
+      const path = window.location.pathname.toLowerCase();
+      const hash = window.location.hash.toLowerCase();
+      setIsAdminView(path === '/admin' || path.startsWith('/admin/') || hash === '#admin' || hash.startsWith('#admin/'));
+    };
+
+    window.addEventListener('popstate', checkRoute);
+    window.addEventListener('hashchange', checkRoute);
+    return () => {
+      window.removeEventListener('popstate', checkRoute);
+      window.removeEventListener('hashchange', checkRoute);
+    };
+  }, []);
+
+  const navigateToAdmin = () => {
+    window.history.pushState({}, '', '/admin');
+    setIsAdminView(true);
+  };
+
+  const navigateToHome = () => {
+    window.history.pushState({}, '', '/');
+    setIsAdminView(false);
+  };
+
+  const handleAdminLoginSuccess = () => {
+    setIsAdminAuthenticated(true);
+    sessionStorage.setItem(ADMIN_AUTH_SESSION_KEY, 'true');
+  };
+
+  const handleAdminLogout = () => {
+    setIsAdminAuthenticated(false);
+    sessionStorage.removeItem(ADMIN_AUTH_SESSION_KEY);
+    navigateToHome();
+  };
 
   const handleExploreServices = () => {
     const el = document.getElementById('servicios');
@@ -45,16 +98,32 @@ export default function App() {
     'Hola HMA Inlumenai, me gustaría solicitar información y cotización sobre sus servicios.'
   );
 
+  // If in Admin route
+  if (isAdminView) {
+    if (!isAdminAuthenticated) {
+      return (
+        <AdminLogin 
+          onLoginSuccess={handleAdminLoginSuccess}
+          onCancel={navigateToHome}
+        />
+      );
+    }
+
+    return (
+      <AdminPanel 
+        onLogout={handleAdminLogout}
+        onBackToSite={navigateToHome}
+      />
+    );
+  }
+
+  // Public Client & Visitor View
   return (
     <div className="min-h-screen flex flex-col bg-[#FAFAFC] dark:bg-[#0B0F19] text-[#111827] dark:text-[#F3F4F6] transition-colors duration-200">
       
       {/* Top Navigation Bar */}
       <Navbar
-        onOpenDeploymentGuide={() => setIsDeploymentGuideOpen(true)}
-        onOpenMediaGuide={() => setIsMediaGuideOpen(true)}
-        onOpenQuickQuote={() => {
-          handleExploreServices();
-        }}
+        onOpenQuickQuote={handleExploreServices}
       />
 
       {/* Main Page Body */}
@@ -66,11 +135,10 @@ export default function App() {
           onExploreAnniversary={handleExploreAnniversary}
         />
 
-        {/* 2. Services Section (12 Services & 4 Clusters with Glow effect & Live Media Preview) */}
+        {/* 2. Services Section (12 Services & 4 Clusters with dynamic data and En Construcción state) */}
         <ServicesSection
           onSelectService={(service) => setSelectedService(service)}
           onOpenMedia={handleOpenMedia}
-          onOpenMediaGuide={() => setIsMediaGuideOpen(true)}
         />
 
         {/* 3. Special Anniversary Section: "El Reloj de las 12 H" (2016-2026) */}
@@ -78,7 +146,7 @@ export default function App() {
 
         {/* 4. Portfolio Section */}
         <PortfolioSection
-          onSelectServiceRequest={(name) => {
+          onSelectServiceRequest={(_name) => {
             handleExploreServices();
           }}
         />
@@ -87,7 +155,7 @@ export default function App() {
 
       {/* Footer */}
       <Footer
-        onOpenDeploymentGuide={() => setIsDeploymentGuideOpen(true)}
+        onOpenAdmin={navigateToAdmin}
       />
 
       {/* Interactive Quotation / Detail Modal */}
@@ -109,50 +177,17 @@ export default function App() {
         }}
       />
 
-      {/* Media Orientation & Smart Links Helper Modal for Non-Programmer */}
-      <MediaOrientationGuideModal
-        isOpen={isMediaGuideOpen}
-        onClose={() => setIsMediaGuideOpen(false)}
-      />
-
-      {/* Step-by-Step Deployment Guide Modal */}
-      <DeploymentGuideModal
-        isOpen={isDeploymentGuideOpen}
-        onClose={() => setIsDeploymentGuideOpen(false)}
-      />
-
-      {/* Floating Action Button: Quick WhatsApp Contact */}
+      {/* Floating Action Button: Quick WhatsApp Contact for clients */}
       <a
         href={floatingWhatsAppUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-4 py-3 rounded-full bg-[#00B4D8] hover:bg-[#0096C7] text-white font-bold text-sm shadow-xl hover:shadow-2xl hover:scale-105 active:scale-95 transition-all group"
+        className="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-4 py-3 rounded-full bg-[#00B4D8] hover:bg-[#0096C7] text-white font-bold text-sm shadow-xl hover:shadow-2xl hover:scale-105 active:scale-95 transition-all group cursor-pointer"
         title="Chatear con HMA Inlumenai en WhatsApp"
       >
         <MessageSquare className="w-5 h-5 fill-white/20" />
         <span className="hidden sm:inline">WhatsApp HMA</span>
       </a>
-
-      {/* Floating Helper for Non-Programmer User (Media & Deploy) */}
-      <div className="fixed bottom-6 left-6 z-40 hidden md:flex items-center gap-2">
-        <button
-          onClick={() => setIsMediaGuideOpen(true)}
-          className="flex items-center gap-2 px-3.5 py-2.5 rounded-full bg-[#111827] dark:bg-gray-800 text-white hover:bg-black dark:hover:bg-gray-700 font-semibold text-xs shadow-lg hover:shadow-xl transition-all border border-transparent dark:border-gray-700 cursor-pointer"
-          title="Ver cómo añadir tus videos y canciones"
-        >
-          <Play className="w-3.5 h-3.5 text-[#00B4D8] fill-current" />
-          <span>Demos & Enlaces</span>
-        </button>
-
-        <button
-          onClick={() => setIsDeploymentGuideOpen(true)}
-          className="flex items-center gap-2 px-3.5 py-2.5 rounded-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-md border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:text-black dark:hover:text-white font-semibold text-xs shadow-md hover:shadow-lg transition-all cursor-pointer"
-          title="Ver Guía de Despliegue (GitHub + Vercel)"
-        >
-          <HelpCircle className="w-4 h-4 text-[#00B4D8]" />
-          <span>Guía Despliegue</span>
-        </button>
-      </div>
 
     </div>
   );
