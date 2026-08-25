@@ -7,6 +7,39 @@ import { CLUSTERS } from '../data/servicesData';
 import { Clock, Calendar, Sparkles, Award, ArrowRight, ChevronLeft, ChevronRight, Info } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
+const AdaptiveLogo: React.FC<{ src: string; className?: string; fallback?: React.ReactNode; maskPosition?: string }> = ({ src, className, fallback, maskPosition = 'center' }) => {
+  const [status, setStatus] = useState<'loading' | 'loaded' | 'error'>('loading');
+
+  useEffect(() => {
+    setStatus('loading');
+    const img = new Image();
+    img.onload = () => setStatus('loaded');
+    img.onerror = () => setStatus('error');
+    img.src = src;
+  }, [src]);
+
+  if (status === 'error') return <>{fallback}</>;
+  if (status === 'loading') return <div className="w-full h-full opacity-0" />; 
+
+  return (
+    <div className={className}>
+      <div 
+        className="w-full h-full bg-[#111827] dark:bg-white transition-colors duration-300"
+        style={{
+          WebkitMaskImage: `url(${src})`,
+          WebkitMaskSize: 'contain',
+          WebkitMaskPosition: maskPosition,
+          WebkitMaskRepeat: 'no-repeat',
+          maskImage: `url(${src})`,
+          maskSize: 'contain',
+          maskPosition: maskPosition,
+          maskRepeat: 'no-repeat',
+        }}
+      />
+    </div>
+  );
+};
+
 export const ClockTimelineSection: React.FC = () => {
   const { siteConfig, timelineMilestones } = useData();
   const [selectedHour, setSelectedHour] = useState<number>(11); // Default to 11 (Year 2026: 10 Years Anniversary)
@@ -101,41 +134,31 @@ export const ClockTimelineSection: React.FC = () => {
 
                 {/* Clock Center Logo */}
                 <div className="absolute flex flex-col items-center justify-center text-center z-10 pointer-events-none">
-                  {currentMilestone.centerLogo ? (
-                    <div className="w-16 h-16 sm:w-20 sm:h-20 mb-1 drop-shadow-md">
-                      <div 
-                        className="w-full h-full bg-[#111827] dark:bg-white transition-colors duration-300"
-                        style={{
-                          WebkitMaskImage: `url(${currentMilestone.centerLogo})`,
-                          WebkitMaskSize: 'contain',
-                          WebkitMaskPosition: 'center',
-                          WebkitMaskRepeat: 'no-repeat',
-                          maskImage: `url(${currentMilestone.centerLogo})`,
-                          maskSize: 'contain',
-                          maskPosition: 'center',
-                          maskRepeat: 'no-repeat',
-                        }}
-                      />
-                    </div>
-                  ) : currentMilestone.logoType === '10-anos' ? (
-                    <div className="w-16 h-16 sm:w-20 sm:h-20 mb-1 text-[#111827] dark:text-white drop-shadow-md transition-colors">
-                      <TenthAnniversaryLogo className="w-full h-full" />
-                    </div>
-                  ) : currentMilestone.logoType === '2016' ? (
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 mb-1 text-[#111827] dark:text-white drop-shadow-md transition-colors">
-                      <Logo2016 className="w-full h-full" />
-                    </div>
-                  ) : currentMilestone.logoPath ? (
-                    <img 
-                      src={currentMilestone.logoPath} 
-                      alt={`Logo ${currentMilestone.year}`} 
-                      className="w-14 h-14 mb-1 object-contain drop-shadow-md opacity-85" 
-                    />
-                  ) : (
-                    <div className="w-9 h-9 mb-0.5 text-[#111827] dark:text-white opacity-85">
-                      <HmaLogo variant="monochrome" color={isDark ? "#FFFFFF" : "#111827"} className="w-full h-full" />
-                    </div>
-                  )}
+                  <AdaptiveLogo 
+                    src={currentMilestone.centerLogo || `/logos/timeline/HMA${currentMilestone.year.slice(-2)}.svg`} 
+                    className="w-16 h-16 sm:w-20 sm:h-20 mb-1 drop-shadow-md"
+                    fallback={
+                      currentMilestone.logoType === '10-anos' ? (
+                        <div className="w-16 h-16 sm:w-20 sm:h-20 mb-1 text-[#111827] dark:text-white drop-shadow-md transition-colors">
+                          <TenthAnniversaryLogo className="w-full h-full" />
+                        </div>
+                      ) : currentMilestone.logoType === '2016' ? (
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 mb-1 text-[#111827] dark:text-white drop-shadow-md transition-colors">
+                          <Logo2016 className="w-full h-full" />
+                        </div>
+                      ) : currentMilestone.logoPath ? (
+                        <img 
+                          src={currentMilestone.logoPath} 
+                          alt={`Logo ${currentMilestone.year}`} 
+                          className="w-14 h-14 mb-1 object-contain drop-shadow-md opacity-85" 
+                        />
+                      ) : (
+                        <div className="w-9 h-9 mb-0.5 text-[#111827] dark:text-white opacity-85">
+                          <HmaLogo variant="monochrome" color={isDark ? "#FFFFFF" : "#111827"} className="w-full h-full" />
+                        </div>
+                      )
+                    }
+                  />
                   <span className="text-[9px] font-bold text-[#F5A623] tracking-wider uppercase">Año</span>
                   <span className="text-xs font-black text-[#111827] dark:text-amber-300 font-heading mt-0.5 bg-amber-50 dark:bg-amber-950/80 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-800">
                     {currentMilestone.year}
@@ -288,23 +311,11 @@ export const ClockTimelineSection: React.FC = () => {
                   </div>
 
                   {/* Custom uploaded logo positioned on the right */}
-                  {currentMilestone.customLogo && (
-                    <div className="shrink-0 w-28 h-28 sm:w-36 sm:h-36 opacity-80 mix-blend-multiply dark:mix-blend-normal hidden sm:block">
-                      <div 
-                        className="w-full h-full bg-[#111827] dark:bg-white transition-colors duration-300"
-                        style={{
-                          WebkitMaskImage: `url(${currentMilestone.customLogo})`,
-                          WebkitMaskSize: 'contain',
-                          WebkitMaskPosition: 'bottom right',
-                          WebkitMaskRepeat: 'no-repeat',
-                          maskImage: `url(${currentMilestone.customLogo})`,
-                          maskSize: 'contain',
-                          maskPosition: 'bottom right',
-                          maskRepeat: 'no-repeat',
-                        }}
-                      />
-                    </div>
-                  )}
+                  <AdaptiveLogo
+                    src={currentMilestone.customLogo || `/logos/timeline/H${currentMilestone.year.slice(-2)}.svg`}
+                    className="shrink-0 w-28 h-28 sm:w-36 sm:h-36 opacity-80 mix-blend-multiply dark:mix-blend-normal hidden sm:block"
+                    maskPosition="bottom right"
+                  />
                 </div>
 
                 {/* Bottom Navigator */}
@@ -390,23 +401,11 @@ export const ClockTimelineSection: React.FC = () => {
                         </div>
                         
                         {/* Custom uploaded logo positioned on the right */}
-                        {m.customLogo && (
-                          <div className="shrink-0 w-24 h-24 sm:w-32 sm:h-32 opacity-80 mix-blend-multiply dark:mix-blend-normal hidden sm:block">
-                            <div 
-                              className="w-full h-full bg-[#111827] dark:bg-white transition-colors duration-300"
-                              style={{
-                                WebkitMaskImage: `url(${m.customLogo})`,
-                                WebkitMaskSize: 'contain',
-                                WebkitMaskPosition: 'bottom right',
-                                WebkitMaskRepeat: 'no-repeat',
-                                maskImage: `url(${m.customLogo})`,
-                                maskSize: 'contain',
-                                maskPosition: 'bottom right',
-                                maskRepeat: 'no-repeat',
-                              }}
-                            />
-                          </div>
-                        )}
+                        <AdaptiveLogo
+                          src={m.customLogo || `/logos/timeline/H${m.year.slice(-2)}.svg`}
+                          className="shrink-0 w-24 h-24 sm:w-32 sm:h-32 opacity-80 mix-blend-multiply dark:mix-blend-normal hidden sm:block"
+                          maskPosition="bottom right"
+                        />
                       </div>
                     </div>
                   )}
