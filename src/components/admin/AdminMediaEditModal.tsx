@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { MediaItem, MediaType, ServiceItem } from '../../types';
 import { CLUSTERS } from '../../data/servicesData';
-import { X, Save, Film, Music, Image as ImageIcon, Link as LinkIcon, Sparkles } from 'lucide-react';
+import { X, Save, Film, Music, Image as ImageIcon, Link as LinkIcon, Sparkles, HelpCircle, Eye } from 'lucide-react';
 
 interface AdminMediaEditModalProps {
   item: MediaItem | null;
@@ -22,7 +22,7 @@ export const AdminMediaEditModal: React.FC<AdminMediaEditModalProps> = ({
 
   const initialServiceId = item?.serviceId || defaultServiceId || services[0]?.id || 'design';
   const [serviceId, setServiceId] = useState(initialServiceId);
-  const [type, setType] = useState<MediaType>(item?.type || 'link');
+  const [type, setType] = useState<MediaType>(item?.type || 'image');
   const [title, setTitle] = useState(item?.title || '');
   const [description, setDescription] = useState(item?.description || '');
   const [url, setUrl] = useState(item?.url || '');
@@ -42,7 +42,7 @@ export const AdminMediaEditModal: React.FC<AdminMediaEditModalProps> = ({
       type,
       description: description.trim() || undefined,
       url: url.trim(),
-      thumbnail: thumbnail.trim() || undefined,
+      thumbnail: thumbnail.trim() || (type === 'image' ? url.trim() : undefined),
       duration: duration.trim() || undefined,
       author: author.trim() || undefined,
       serviceId,
@@ -63,21 +63,21 @@ export const AdminMediaEditModal: React.FC<AdminMediaEditModalProps> = ({
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-[#00B4D8]/20 flex items-center justify-center text-[#00B4D8]">
               {type === 'video' ? (
-                <Film className="w-4 h-4" />
+                <Film className="w-4 h-4 text-red-400" />
               ) : type === 'audio' ? (
-                <Music className="w-4 h-4" />
+                <Music className="w-4 h-4 text-purple-400" />
               ) : type === 'image' ? (
-                <ImageIcon className="w-4 h-4" />
+                <ImageIcon className="w-4 h-4 text-emerald-400" />
               ) : (
-                <LinkIcon className="w-4 h-4" />
+                <LinkIcon className="w-4 h-4 text-blue-400" />
               )}
             </div>
             <div>
               <h3 className="text-base font-black text-white font-heading">
-                {isEditing ? 'Editar Muestra / Enlace' : 'Agregar Nueva Muestra o Enlace'}
+                {isEditing ? 'Editar Muestra / Contenido' : 'Agregar Nueva Muestra Multimedia'}
               </h3>
               <p className="text-[11px] text-gray-400">
-                Añade videos, audios, fotos o enlaces de Facebook/YouTube al catálogo.
+                Configura videos, pistas de audio o fotos en alta definición para el catálogo.
               </p>
             </div>
           </div>
@@ -114,20 +114,33 @@ export const AdminMediaEditModal: React.FC<AdminMediaEditModalProps> = ({
           {/* Media Type Selector */}
           <div>
             <label className="block text-xs font-bold text-gray-300 mb-1.5">
-              Tipo de Contenido / Formato:
+              Tipo de Formato:
             </label>
             <div className="grid grid-cols-4 gap-2">
               <button
                 type="button"
-                onClick={() => setType('link')}
+                onClick={() => setType('image')}
                 className={`py-2 px-2 rounded-xl border text-[11px] font-bold flex flex-col items-center gap-1 transition-all cursor-pointer ${
-                  type === 'link'
-                    ? 'bg-[#1877F2]/20 border-[#1877F2] text-[#6098FE]'
+                  type === 'image'
+                    ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400'
                     : 'bg-[#141E33] border-gray-800 text-gray-400 hover:text-white'
                 }`}
               >
-                <LinkIcon className="w-4 h-4" />
-                <span>Enlace Web</span>
+                <ImageIcon className="w-4 h-4" />
+                <span>Foto / Imagen</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setType('audio')}
+                className={`py-2 px-2 rounded-xl border text-[11px] font-bold flex flex-col items-center gap-1 transition-all cursor-pointer ${
+                  type === 'audio'
+                    ? 'bg-purple-500/20 border-purple-500 text-purple-400'
+                    : 'bg-[#141E33] border-gray-800 text-gray-400 hover:text-white'
+                }`}
+              >
+                <Music className="w-4 h-4" />
+                <span>Audio (MP3)</span>
               </button>
 
               <button
@@ -145,40 +158,44 @@ export const AdminMediaEditModal: React.FC<AdminMediaEditModalProps> = ({
 
               <button
                 type="button"
-                onClick={() => setType('audio')}
+                onClick={() => setType('link')}
                 className={`py-2 px-2 rounded-xl border text-[11px] font-bold flex flex-col items-center gap-1 transition-all cursor-pointer ${
-                  type === 'audio'
-                    ? 'bg-purple-500/20 border-purple-500 text-purple-400'
+                  type === 'link'
+                    ? 'bg-[#1877F2]/20 border-[#1877F2] text-[#6098FE]'
                     : 'bg-[#141E33] border-gray-800 text-gray-400 hover:text-white'
                 }`}
               >
-                <Music className="w-4 h-4" />
-                <span>Audio MP3</span>
+                <LinkIcon className="w-4 h-4" />
+                <span>Enlace Web</span>
               </button>
+            </div>
 
-              <button
-                type="button"
-                onClick={() => setType('image')}
-                className={`py-2 px-2 rounded-xl border text-[11px] font-bold flex flex-col items-center gap-1 transition-all cursor-pointer ${
-                  type === 'image'
-                    ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400'
-                    : 'bg-[#141E33] border-gray-800 text-gray-400 hover:text-white'
-                }`}
-              >
-                <ImageIcon className="w-4 h-4" />
-                <span>Imagen / Foto</span>
-              </button>
+            {/* Smart Format Tip */}
+            <div className="mt-2 p-2.5 rounded-xl bg-[#090F1E] border border-gray-800 text-[11px] text-gray-400 flex items-center gap-2">
+              <Sparkles className="w-3.5 h-3.5 text-[#00B4D8] shrink-0" />
+              {type === 'image' && (
+                <span>Para <strong>Fotos</strong>, coloca la URL directa de la imagen (.jpg, .png o de Unsplash/Imgur) para que se aprecie en alta definición.</span>
+              )}
+              {type === 'audio' && (
+                <span>Para <strong>Audios</strong>, pega un enlace directo a archivo .mp3 o enlace de SoundCloud/Spotify para reproducirlo con el ecualizador.</span>
+              )}
+              {type === 'video' && (
+                <span>Para <strong>Videos</strong>, pega cualquier enlace de YouTube (normal, short o watch) o Vimeo y se reproducirá al instante.</span>
+              )}
+              {type === 'link' && (
+                <span>Para <strong>Enlaces</strong>, puedes pegar publicaciones de Facebook, páginas web o perfiles.</span>
+              )}
             </div>
           </div>
 
           {/* Title */}
           <div>
             <label className="block text-xs font-bold text-gray-300 mb-1">
-              Título de la Muestra / Proyecto:
+              Título de la Muestra:
             </label>
             <input
               type="text"
-              placeholder="Ej. Es Una Lluvia de Gracia · Video 01"
+              placeholder="Ej. Retrato de Estudio & Corrección de Color"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
@@ -189,11 +206,19 @@ export const AdminMediaEditModal: React.FC<AdminMediaEditModalProps> = ({
           {/* URL */}
           <div>
             <label className="block text-xs font-bold text-gray-300 mb-1">
-              Enlace URL (YouTube, Facebook, MP3, etc.):
+              Enlace URL del Contenido (Imagen, MP3, YouTube o Web):
             </label>
             <input
               type="url"
-              placeholder="https://www.youtube.com/watch?v=... o https://facebook.com/..."
+              placeholder={
+                type === 'image' 
+                  ? 'https://images.unsplash.com/... o https://tuservidor.com/foto.jpg' 
+                  : type === 'audio'
+                  ? 'https://tuservidor.com/cancion.mp3 o https://soundcloud.com/...'
+                  : type === 'video'
+                  ? 'https://www.youtube.com/watch?v=... o https://youtu.be/...'
+                  : 'https://www.facebook.com/...'
+              }
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               required
@@ -204,11 +229,11 @@ export const AdminMediaEditModal: React.FC<AdminMediaEditModalProps> = ({
           {/* Thumbnail URL */}
           <div>
             <label className="block text-xs font-bold text-gray-300 mb-1">
-              URL de la Imagen de Portada / Miniatura (Opcional):
+              URL de la Portada / Miniatura (Opcional):
             </label>
             <input
               type="url"
-              placeholder="https://images.unsplash.com/... o enlace directo a imagen"
+              placeholder="https://images.unsplash.com/... (si lo dejas vacío, usa la URL principal en fotos)"
               value={thumbnail}
               onChange={(e) => setThumbnail(e.target.value)}
               className="w-full px-3.5 py-2.5 rounded-xl bg-[#090F1E] border border-gray-700 text-white text-xs font-mono focus:outline-none focus:ring-2 focus:ring-[#00B4D8]"
@@ -223,7 +248,7 @@ export const AdminMediaEditModal: React.FC<AdminMediaEditModalProps> = ({
               </label>
               <input
                 type="text"
-                placeholder="Ej. YouTube, Reel, 4:20, 4K"
+                placeholder="Ej. 1:45, 4K, YouTube, HD"
                 value={duration}
                 onChange={(e) => setDuration(e.target.value)}
                 className="w-full px-3.5 py-2 rounded-xl bg-[#090F1E] border border-gray-700 text-white text-xs focus:outline-none focus:ring-2 focus:ring-[#00B4D8]"
@@ -232,7 +257,7 @@ export const AdminMediaEditModal: React.FC<AdminMediaEditModalProps> = ({
 
             <div>
               <label className="block text-xs font-bold text-gray-300 mb-1">
-                Autor / Productor (Opcional):
+                Autor / Productor:
               </label>
               <input
                 type="text"
@@ -251,7 +276,7 @@ export const AdminMediaEditModal: React.FC<AdminMediaEditModalProps> = ({
             </label>
             <textarea
               rows={2}
-              placeholder="Breve reseña del contenido..."
+              placeholder="Breve reseña del proyecto o técnica empleada..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="w-full px-3.5 py-2 rounded-xl bg-[#090F1E] border border-gray-700 text-white text-xs focus:outline-none focus:ring-2 focus:ring-[#00B4D8]"
@@ -273,7 +298,7 @@ export const AdminMediaEditModal: React.FC<AdminMediaEditModalProps> = ({
               className="px-6 py-2.5 rounded-xl bg-[#00B4D8] hover:bg-[#0096B4] text-white text-xs font-bold flex items-center gap-1.5 shadow-lg shadow-[#00B4D8]/20 transition-all cursor-pointer"
             >
               <Save className="w-4 h-4" />
-              <span>{isEditing ? 'Actualizar Muestra' : 'Agregar Muestra'}</span>
+              <span>{isEditing ? 'Actualizar Muestra' : 'Guardar Muestra'}</span>
             </button>
           </div>
 

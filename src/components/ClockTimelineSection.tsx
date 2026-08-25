@@ -2,19 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { HmaLogo } from './HmaLogo';
 import { TenthAnniversaryLogo } from './TenthAnniversaryLogo';
 import { Logo2016 } from './Logo2016';
-import { TIMELINE_MILESTONES } from '../data/timelineData';
+import { useData } from '../context/DataContext';
 import { CLUSTERS } from '../data/servicesData';
 import { Clock, Calendar, Sparkles, Award, ArrowRight, ChevronLeft, ChevronRight, Info } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
 export const ClockTimelineSection: React.FC = () => {
+  const { siteConfig, timelineMilestones } = useData();
   const [selectedHour, setSelectedHour] = useState<number>(11); // Default to 11 (Year 2026: 10 Years Anniversary)
   const [viewMode, setViewMode] = useState<'clock' | 'timeline'>('clock');
   const [isAutoPlaying, setIsAutoPlaying] = useState<boolean>(false);
   const { isDark } = useTheme();
 
   const currentMilestone =
-    TIMELINE_MILESTONES.find((m) => m.hour === selectedHour) || TIMELINE_MILESTONES[0];
+    timelineMilestones.find((m) => m.hour === selectedHour) || timelineMilestones[0];
 
   // Auto rotate timer if user enables it
   useEffect(() => {
@@ -43,15 +44,15 @@ export const ClockTimelineSection: React.FC = () => {
         <div className="text-center max-w-3xl mx-auto mb-12">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-500/15 via-amber-400/20 to-amber-500/15 border border-amber-500/30 text-amber-900 dark:text-amber-300 text-xs font-black uppercase tracking-wider mb-4 shadow-xs">
             <Award className="w-4 h-4 text-[#F5A623]" />
-            Edición Conmemorativa Especial · 10 Años (2016 – 2026)
+            {siteConfig.anniversarySectionBadge || 'Edición Conmemorativa Especial · 10 Años (2016 – 2026)'}
           </div>
 
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[#111827] dark:text-white font-heading tracking-tight">
-            El Reloj de las 12 Horas
+            {siteConfig.anniversarySectionTitle || 'El Reloj de las 12 Horas'}
           </h2>
 
           <p className="text-gray-600 dark:text-gray-300 text-base sm:text-lg mt-3">
-            Cada hora en el reloj representa un capítulo trascendental en la historia y evolución creativa de <strong className="text-[#111827] dark:text-white">HMA INLUMENAI</strong>.
+            {siteConfig.anniversarySectionSubtitle || 'Cada hora en el reloj representa un capítulo trascendental en la historia y evolución creativa de HMA INLUMENAI.'}
           </p>
 
           {/* Temporal Section Note */}
@@ -100,7 +101,23 @@ export const ClockTimelineSection: React.FC = () => {
 
                 {/* Clock Center Logo */}
                 <div className="absolute flex flex-col items-center justify-center text-center z-10 pointer-events-none">
-                  {currentMilestone.logoType === '10-anos' ? (
+                  {currentMilestone.centerLogo ? (
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 mb-1 drop-shadow-md">
+                      <div 
+                        className="w-full h-full bg-[#111827] dark:bg-white transition-colors duration-300"
+                        style={{
+                          WebkitMaskImage: `url(${currentMilestone.centerLogo})`,
+                          WebkitMaskSize: 'contain',
+                          WebkitMaskPosition: 'center',
+                          WebkitMaskRepeat: 'no-repeat',
+                          maskImage: `url(${currentMilestone.centerLogo})`,
+                          maskSize: 'contain',
+                          maskPosition: 'center',
+                          maskRepeat: 'no-repeat',
+                        }}
+                      />
+                    </div>
+                  ) : currentMilestone.logoType === '10-anos' ? (
                     <div className="w-16 h-16 sm:w-20 sm:h-20 mb-1 text-[#111827] dark:text-white drop-shadow-md transition-colors">
                       <TenthAnniversaryLogo className="w-full h-full" />
                     </div>
@@ -112,7 +129,7 @@ export const ClockTimelineSection: React.FC = () => {
                     <img 
                       src={currentMilestone.logoPath} 
                       alt={`Logo ${currentMilestone.year}`} 
-                      className="w-14 h-14 mb-1 object-contain drop-shadow-md" 
+                      className="w-14 h-14 mb-1 object-contain drop-shadow-md opacity-85" 
                     />
                   ) : (
                     <div className="w-9 h-9 mb-0.5 text-[#111827] dark:text-white opacity-85">
@@ -144,7 +161,7 @@ export const ClockTimelineSection: React.FC = () => {
                 <div className="w-5 h-5 rounded-full bg-[#111827] dark:bg-white border-2 border-white dark:border-gray-900 shadow-md z-30" />
 
                 {/* 12 Clock Hour Buttons placed mathematically around the circle */}
-                {TIMELINE_MILESTONES.map((m) => {
+                {timelineMilestones.map((m) => {
                   const angle = (m.hour * 30 - 90) * (Math.PI / 180);
                   const radius = 135; // px from center
                   const x = Math.cos(angle) * radius;
@@ -254,19 +271,40 @@ export const ClockTimelineSection: React.FC = () => {
                   {currentMilestone.details}
                 </p>
 
-                {/* Key Accomplishments */}
-                <div className="mb-6">
-                  <h4 className="text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-400 font-heading mb-3">
-                    Hitos Principales de Esta Hora
-                  </h4>
-                  <ul className="space-y-2">
-                    {currentMilestone.milestones.map((item, idx) => (
-                      <li key={idx} className="flex items-start gap-2.5 text-xs sm:text-sm text-gray-700 dark:text-gray-300">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#F5A623] shrink-0 mt-1.5" />
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
+                {/* Key Accomplishments & Logo */}
+                <div className="mb-6 flex flex-col sm:flex-row items-end justify-between gap-6">
+                  <div className="flex-1 w-full">
+                    <h4 className="text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-400 font-heading mb-3">
+                      Hitos Principales de Esta Hora
+                    </h4>
+                    <ul className="space-y-2">
+                      {currentMilestone.milestones.map((item, idx) => (
+                        <li key={idx} className="flex items-start gap-2.5 text-xs sm:text-sm text-gray-700 dark:text-gray-300">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#F5A623] shrink-0 mt-1.5" />
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Custom uploaded logo positioned on the right */}
+                  {currentMilestone.customLogo && (
+                    <div className="shrink-0 w-28 h-28 sm:w-36 sm:h-36 opacity-80 mix-blend-multiply dark:mix-blend-normal hidden sm:block">
+                      <div 
+                        className="w-full h-full bg-[#111827] dark:bg-white transition-colors duration-300"
+                        style={{
+                          WebkitMaskImage: `url(${currentMilestone.customLogo})`,
+                          WebkitMaskSize: 'contain',
+                          WebkitMaskPosition: 'bottom right',
+                          WebkitMaskRepeat: 'no-repeat',
+                          maskImage: `url(${currentMilestone.customLogo})`,
+                          maskSize: 'contain',
+                          maskPosition: 'bottom right',
+                          maskRepeat: 'no-repeat',
+                        }}
+                      />
+                    </div>
+                  )}
                 </div>
 
                 {/* Bottom Navigator */}
@@ -288,7 +326,7 @@ export const ClockTimelineSection: React.FC = () => {
         ) : (
           /* Linear Timeline Mode */
           <div className="space-y-6 max-w-4xl mx-auto">
-            {TIMELINE_MILESTONES.map((m) => {
+            {timelineMilestones.map((m) => {
               const isSelected = selectedHour === m.hour;
               const cl = m.clusterId ? CLUSTERS[m.clusterId] : CLUSTERS['03'];
 
@@ -328,6 +366,50 @@ export const ClockTimelineSection: React.FC = () => {
                   </div>
 
                   <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 mt-2">{m.summary}</p>
+                  
+                  {/* Expanded Details when selected */}
+                  {isSelected && (
+                    <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-800 animate-in fade-in slide-in-from-top-4">
+                      <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-6 bg-gray-50 dark:bg-[#0F172A] p-4 rounded-2xl border border-gray-100 dark:border-gray-800">
+                        {m.details}
+                      </p>
+                      
+                      <div className="mb-4 flex flex-col sm:flex-row items-end justify-between gap-6">
+                        <div className="flex-1 w-full">
+                          <h4 className="text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-400 font-heading mb-3">
+                            Hitos Principales de Esta Hora
+                          </h4>
+                          <ul className="space-y-2">
+                            {m.milestones.map((item, idx) => (
+                              <li key={idx} className="flex items-start gap-2.5 text-xs sm:text-sm text-gray-700 dark:text-gray-300">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#F5A623] shrink-0 mt-1.5" />
+                                <span>{item}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                        
+                        {/* Custom uploaded logo positioned on the right */}
+                        {m.customLogo && (
+                          <div className="shrink-0 w-24 h-24 sm:w-32 sm:h-32 opacity-80 mix-blend-multiply dark:mix-blend-normal hidden sm:block">
+                            <div 
+                              className="w-full h-full bg-[#111827] dark:bg-white transition-colors duration-300"
+                              style={{
+                                WebkitMaskImage: `url(${m.customLogo})`,
+                                WebkitMaskSize: 'contain',
+                                WebkitMaskPosition: 'bottom right',
+                                WebkitMaskRepeat: 'no-repeat',
+                                maskImage: `url(${m.customLogo})`,
+                                maskSize: 'contain',
+                                maskPosition: 'bottom right',
+                                maskRepeat: 'no-repeat',
+                              }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}

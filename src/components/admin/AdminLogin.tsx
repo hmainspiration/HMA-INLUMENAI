@@ -3,17 +3,29 @@ import { HmaLogo } from '../HmaLogo';
 import { ShieldCheck, Lock, ArrowLeft, KeyRound, AlertCircle, Sparkles } from 'lucide-react';
 
 interface AdminLoginProps {
-  onSuccess: () => void;
+  onSuccess?: () => void;
+  onLoginSuccess?: () => void;
   onCancel: () => void;
 }
 
 const CORRECT_PIN = '291520';
 
-export const AdminLogin: React.FC<AdminLoginProps> = ({ onSuccess, onCancel }) => {
+export const AdminLogin: React.FC<AdminLoginProps> = ({ onSuccess, onLoginSuccess, onCancel }) => {
   const [pin, setPin] = useState(['', '', '', '', '', '']);
   const [error, setError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  const handleSuccess = () => {
+    sessionStorage.setItem('hma_admin_auth_v1', 'true');
+    sessionStorage.setItem('HMA_ADMIN_AUTH', 'true');
+    if (onLoginSuccess) {
+      onLoginSuccess();
+    }
+    if (onSuccess) {
+      onSuccess();
+    }
+  };
 
   useEffect(() => {
     // Focus first input on mount
@@ -69,8 +81,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onSuccess, onCancel }) =
   const verifyPin = (enteredPin: string) => {
     if (enteredPin === CORRECT_PIN) {
       setError(false);
-      sessionStorage.setItem('HMA_ADMIN_AUTH', 'true');
-      onSuccess();
+      handleSuccess();
     } else {
       setError(true);
       setErrorMessage('Código de 6 dígitos incorrecto. Por favor verifícalo.');

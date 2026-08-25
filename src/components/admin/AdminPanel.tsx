@@ -7,6 +7,7 @@ import { ServiceIcon } from '../ServiceIcons';
 import { AdminServiceEditModal } from './AdminServiceEditModal';
 import { AdminMediaEditModal } from './AdminMediaEditModal';
 import { AdminPortfolioEditModal } from './AdminPortfolioEditModal';
+import { AdminTimelineTab } from './AdminTimelineTab';
 import { 
   LayoutGrid, 
   Film, 
@@ -34,11 +35,16 @@ import {
 } from 'lucide-react';
 
 interface AdminPanelProps {
-  onGoToPublicSite: () => void;
+  onGoToPublicSite?: () => void;
+  onBackToSite?: () => void;
   onLogout: () => void;
 }
 
-export const AdminPanel: React.FC<AdminPanelProps> = ({ onGoToPublicSite, onLogout }) => {
+export const AdminPanel: React.FC<AdminPanelProps> = ({ onGoToPublicSite, onBackToSite, onLogout }) => {
+  const handleExitToPublic = () => {
+    if (onBackToSite) onBackToSite();
+    else if (onGoToPublicSite) onGoToPublicSite();
+  };
   const {
     services,
     mediaItems,
@@ -58,7 +64,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onGoToPublicSite, onLogo
     importDataFromJson,
   } = useData();
 
-  const [activeTab, setActiveTab] = useState<'services' | 'media' | 'portfolio' | 'settings'>('services');
+  const [activeTab, setActiveTab] = useState<'services' | 'media' | 'portfolio' | 'timeline' | 'settings'>('services');
   const [selectedServiceToEdit, setSelectedServiceToEdit] = useState<ServiceItem | null>(null);
   
   // Media Modal state
@@ -167,7 +173,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onGoToPublicSite, onLogo
         {/* Action Controls in Header */}
         <div className="flex items-center gap-2 sm:gap-3">
           <button
-            onClick={onGoToPublicSite}
+            onClick={handleExitToPublic}
             className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#141E33] hover:bg-[#1E2D4A] border border-gray-700 text-xs font-bold text-gray-200 transition-all cursor-pointer"
             title="Ver cómo ven los clientes la página"
           >
@@ -244,6 +250,18 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onGoToPublicSite, onLogo
           </button>
 
           <button
+            onClick={() => setActiveTab('timeline')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+              activeTab === 'timeline'
+                ? 'bg-[#00B4D8] text-white shadow-md shadow-[#00B4D8]/20'
+                : 'text-gray-400 hover:text-white hover:bg-[#141E33]'
+            }`}
+          >
+            <Sparkles className="w-4 h-4" />
+            <span>4. Reloj 10 Años</span>
+          </button>
+
+          <button
             onClick={() => setActiveTab('settings')}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'settings'
@@ -252,7 +270,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onGoToPublicSite, onLogo
             }`}
           >
             <Settings className="w-4 h-4" />
-            <span>4. Ajustes & Redes</span>
+            <span>5. Ajustes & Redes</span>
           </button>
         </div>
 
@@ -698,7 +716,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onGoToPublicSite, onLogo
         )}
 
         {/* ========================================================================= */}
-        {/* TAB 4: CONFIGURACIÓN GLOBAL & REDES                                       */}
+        {/* TAB 4: TIMELINE (10 AÑOS)                                                 */}
+        {/* ========================================================================= */}
+        {activeTab === 'timeline' && (
+          <AdminTimelineTab />
+        )}
+
+        {/* ========================================================================= */}
+        {/* TAB 5: CONFIGURACIÓN GLOBAL & REDES                                       */}
         {/* ========================================================================= */}
         {activeTab === 'settings' && (
           <div className="space-y-6 max-w-3xl mx-auto animate-in fade-in">

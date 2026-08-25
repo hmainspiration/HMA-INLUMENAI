@@ -1,11 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { ServiceItem, MediaItem, PortfolioItem, SiteConfig } from '../types';
+import { ServiceItem, MediaItem, PortfolioItem, SiteConfig, ClockHourMilestone } from '../types';
 import { SERVICES as DEFAULT_SERVICES, CLUSTERS } from '../data/servicesData';
 import { MEDIA_ITEMS as DEFAULT_MEDIA } from '../data/mediaData';
 import { PORTFOLIO_ITEMS as DEFAULT_PORTFOLIO } from '../data/portfolioData';
+import { TIMELINE_MILESTONES as DEFAULT_TIMELINE } from '../data/timelineData';
 import { SOCIAL_LINKS, WHATSAPP_PHONE, WHATSAPP_DISPLAY } from '../data/socialLinks';
 
-const STORAGE_KEY = 'HMA_INLUMENAI_STORE_V1';
+const STORAGE_KEY = 'HMA_INLUMENAI_STORE_V2';
 
 const DEFAULT_CONFIG: SiteConfig = {
   motto: 'La Creatividad es Un Regalo de Dios · Ecosistema HMA',
@@ -14,13 +15,18 @@ const DEFAULT_CONFIG: SiteConfig = {
   facebookUrl: SOCIAL_LINKS.facebook.url,
   instagramUrl: SOCIAL_LINKS.instagram.url,
   youtubeUrl: SOCIAL_LINKS.youtube.url,
-  version: '2.2.1',
+  version: '2.3.0',
+  showAnniversaryClock: true,
+  anniversarySectionTitle: 'El Reloj de las 12 Horas',
+  anniversarySectionSubtitle: 'Cada hora en el reloj representa un capítulo trascendental en la historia y evolución creativa de HMA INLUMENAI.',
+  anniversarySectionBadge: 'Edición Conmemorativa Especial · 10 Años (2016 – 2026)',
 };
 
 interface DataContextType {
   services: ServiceItem[];
   mediaItems: MediaItem[];
   portfolioItems: PortfolioItem[];
+  timelineMilestones: ClockHourMilestone[];
   siteConfig: SiteConfig;
   // Service management
   updateService: (id: string, updated: Partial<ServiceItem>) => void;
@@ -33,6 +39,9 @@ interface DataContextType {
   addPortfolioItem: (item: Omit<PortfolioItem, 'id'>) => string;
   updatePortfolioItem: (id: string, updated: Partial<PortfolioItem>) => void;
   deletePortfolioItem: (id: string) => void;
+  // Timeline/Clock management
+  updateTimelineMilestone: (hour: number, updated: Partial<ClockHourMilestone>) => void;
+  resetTimelineToDefaults: () => void;
   // Config & Backup
   updateSiteConfig: (config: Partial<SiteConfig>) => void;
   resetAllToDefaults: () => void;
@@ -91,6 +100,18 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return DEFAULT_PORTFOLIO;
   });
 
+  const [timelineMilestones, setTimelineMilestones] = useState<ClockHourMilestone[]>(() => {
+    try {
+      const saved = localStorage.getItem(`${STORAGE_KEY}_TIMELINE`);
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (e) {
+      console.error('Error loading timeline from localStorage:', e);
+    }
+    return DEFAULT_TIMELINE;
+  });
+
   const [siteConfig, setSiteConfig] = useState<SiteConfig>(() => {
     try {
       const saved = localStorage.getItem(`${STORAGE_KEY}_CONFIG`);
@@ -135,6 +156,14 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('Error saving portfolio to localStorage:', e);
     }
   }, [portfolioItems]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(`${STORAGE_KEY}_TIMELINE`, JSON.stringify(timelineMilestones));
+    } catch (e) {
+      console.error('Error saving timeline to localStorage:', e);
+    }
+  }, [timelineMilestones]);
 
   useEffect(() => {
     try {
@@ -193,6 +222,18 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setPortfolioItems((prev) => prev.filter((p) => p.id !== id));
   };
 
+  // Timeline operations
+  const updateTimelineMilestone = (hour: number, updated: Partial<ClockHourMilestone>) => {
+    setTimelineMilestones((prev) =>
+      prev.map((m) => (m.hour === hour ? { ...m, ...updated } : m))
+    );
+  };
+
+  const resetTimelineToDefaults = () => {
+    localStorage.removeItem(`${STORAGE_KEY}_TIMELINE`);
+    setTimelineMilestones(DEFAULT_TIMELINE);
+  };
+
   // Config operations
   const updateSiteConfig = (updated: Partial<SiteConfig>) => {
     setSiteConfig((prev) => ({ ...prev, ...updated }));
@@ -202,11 +243,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem(`${STORAGE_KEY}_SERVICES`);
     localStorage.removeItem(`${STORAGE_KEY}_MEDIA`);
     localStorage.removeItem(`${STORAGE_KEY}_PORTFOLIO`);
+    localStorage.removeItem(`${STORAGE_KEY}_TIMELINE`);
     localStorage.removeItem(`${STORAGE_KEY}_CONFIG`);
 
     setServices(getHydratedDefaultServices());
     setMediaItems(DEFAULT_MEDIA);
     setPortfolioItems(DEFAULT_PORTFOLIO);
+    setTimelineMilestones(DEFAULT_TIMELINE);
     setSiteConfig(DEFAULT_CONFIG);
   };
 
@@ -215,6 +258,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       services,
       mediaItems,
       portfolioItems,
+      timelineMilestones,
       siteConfig,
       exportedAt: new Date().toISOString(),
       app: 'HMA INLUMENAI',
@@ -234,6 +278,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (parsed.portfolioItems && Array.isArray(parsed.portfolioItems)) {
         setPortfolioItems(parsed.portfolioItems);
       }
+      if (parsed.timelineMilestones && Array.isArray(parsed.timelineMilestones)) {
+        setTimelineMilestones(parsed.timelineMilestones);
+      }
       if (parsed.siteConfig && typeof parsed.siteConfig === 'object') {
         setSiteConfig(parsed.siteConfig);
       }
@@ -250,6 +297,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         services,
         mediaItems,
         portfolioItems,
+        timelineMilestones,
         siteConfig,
         updateService,
         toggleServiceActive,
@@ -259,6 +307,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         addPortfolioItem,
         updatePortfolioItem,
         deletePortfolioItem,
+        updateTimelineMilestone,
+        resetTimelineToDefaults,
         updateSiteConfig,
         resetAllToDefaults,
         exportDataToJson,

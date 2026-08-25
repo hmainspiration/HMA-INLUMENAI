@@ -78,6 +78,10 @@ export interface SiteConfig {
   instagramUrl: string;
   youtubeUrl: string;
   version: string;
+  showAnniversaryClock?: boolean;
+  anniversarySectionTitle?: string;
+  anniversarySectionSubtitle?: string;
+  anniversarySectionBadge?: string;
 }
 
 export interface ClockHourMilestone {
@@ -92,6 +96,9 @@ export interface ClockHourMilestone {
   highlightTag: string;
   logoPath?: string; // Path to SVG logo when added (e.g., "/logos/period-1.svg")
   logoType?: string; // e.g. "10-anos" for hardcoded SVG components
+  customLogo?: string; // Base64 data URL or SVG XML uploaded by admin
+  centerLogo?: string; // Submarca for the center of the clock
+  logoUrl?: string; // Direct image URL
 }
 
 export interface PortfolioItem {

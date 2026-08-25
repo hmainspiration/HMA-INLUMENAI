@@ -142,7 +142,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenAdmin }) => {
             <p>© 2016 – 2026 HMA INLUMENAI. Todos los derechos reservados.</p>
             <span className="hidden sm:inline text-gray-600">·</span>
             <span className="px-2 py-0.5 rounded-full bg-gray-800 text-[#11D7B6] font-mono text-[10px] font-bold border border-gray-700">
-              v2.2.1 · Panel Admin & Control Total
+              v2.3.0 · Aniversario 10 Años Configurable & UI Limpia para Clientes
             </span>
           </div>
           

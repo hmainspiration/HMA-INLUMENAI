@@ -189,35 +189,17 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
                     {/* Top Metadata Header */}
                     <div className="flex items-center justify-between gap-2 mb-4">
                       <div className="flex items-center gap-2">
-                        <span 
-                          className="text-xs font-mono font-black px-2.5 py-1 rounded-md text-white shadow-2xs"
-                          style={{ backgroundColor: colorHex }}
-                        >
-                          {service.serviceNumber}
-                        </span>
                         <span className="text-xs font-extrabold text-gray-500 dark:text-gray-400 font-heading">
                           Clúster {cluster.number}
                         </span>
                       </div>
 
                       {/* Status / Color Chip Badge */}
-                      {!isOnline ? (
+                      {!isOnline && (
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30">
                           <AlertTriangle className="w-3 h-3" />
                           <span>En Construcción</span>
                         </span>
-                      ) : (
-                        <div 
-                          className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border"
-                          style={{
-                            backgroundColor: `${colorHex}15`,
-                            color: colorHex,
-                            borderColor: `${colorHex}35`,
-                          }}
-                        >
-                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: colorHex }} />
-                          <span>{colorHex}</span>
-                        </div>
                       )}
                     </div>
 
@@ -258,34 +240,12 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
                     </p>
 
                     {/* Under construction banner if disabled */}
-                    {!isOnline ? (
+                    {!isOnline && (
                       <div className="mb-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-300 text-xs">
                         <p className="font-semibold leading-relaxed">
                           {service.underConstructionMessage || 'Este servicio se encuentra en fase de actualización y mejoras. Próximamente disponible.'}
                         </p>
                       </div>
-                    ) : (
-                      <>
-                        {/* Geometric Concept Strip */}
-                        {service.concept && (
-                          <div className="mb-3 px-3 py-1.5 rounded-lg bg-gray-50 dark:bg-[#15231B] border border-gray-200/80 dark:border-gray-800 text-[11px] text-gray-700 dark:text-gray-300 font-medium flex items-center justify-between">
-                            <span className="text-gray-400 dark:text-gray-500">Concepto:</span>
-                            <span className="font-bold text-gray-900 dark:text-[#FEFAE8]">{service.concept}</span>
-                          </div>
-                        )}
-
-                        {/* Technical Color Coordinates Row */}
-                        <div className="grid grid-cols-2 gap-2 text-[10px] font-mono text-gray-500 dark:text-gray-400 bg-gray-50/70 dark:bg-[#121C15]/70 p-2.5 rounded-lg border border-gray-100 dark:border-gray-800/60 mb-4">
-                          <div>
-                            <span className="text-gray-400 dark:text-gray-500">RGB: </span>
-                            <span className="font-semibold text-gray-800 dark:text-gray-200">{service.rgb || '—'}</span>
-                          </div>
-                          <div>
-                            <span className="text-gray-400 dark:text-gray-500">CMYK: </span>
-                            <span className="font-semibold text-gray-800 dark:text-gray-200">{service.cmyk || '—'}</span>
-                          </div>
-                        </div>
-                      </>
                     )}
 
                     {/* Media trigger banner if items exist */}
@@ -299,23 +259,21 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
                         }}
                       >
                         <div className="flex items-center gap-2 text-xs font-bold" style={{ color: colorHex }}>
-                          {service.mediaItems.some(m => m.type === 'video') && (
+                          {service.mediaItems.some(m => m.type === 'video') ? (
                             <Film className="w-3.5 h-3.5" />
-                          )}
-                          {service.mediaItems.some(m => m.type === 'audio') && (
+                          ) : service.mediaItems.some(m => m.type === 'audio') ? (
                             <Music className="w-3.5 h-3.5" />
-                          )}
-                          {service.mediaItems.every(m => m.type === 'image') && (
+                          ) : (
                             <ImageIcon className="w-3.5 h-3.5" />
                           )}
-                          <span>Ver {service.mediaItems.length} Muestras en Vivo</span>
+                          <span>Muestras de Contenido</span>
                         </div>
                         <span 
-                          className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md bg-white dark:bg-[#0E1712] shadow-2xs group-hover/media:translate-x-0.5 transition-transform" 
+                          className="inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1 rounded-md bg-white dark:bg-[#0E1712] shadow-sm group-hover/media:scale-105 transition-transform" 
                           style={{ color: colorHex }}
                         >
                           <Play className="w-3 h-3 fill-current" />
-                          <span>Reproducir</span>
+                          <span>Abrir</span>
                         </span>
                       </button>
                     )}
@@ -380,15 +338,9 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
                   }}
                 >
                   <div>
-                    {/* Top Bar: Cluster Number, Service Number & Badge */}
+                    {/* Top Bar: Cluster Number & Badge */}
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-1.5">
-                        <span
-                          className="text-[11px] font-black px-2 py-0.5 rounded-md font-mono text-white"
-                          style={{ backgroundColor: colorHex }}
-                        >
-                          {service.serviceNumber}
-                        </span>
                         <span
                           className="text-[11px] font-extrabold px-2.5 py-1 rounded-lg border font-heading"
                           style={{
@@ -482,19 +434,17 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
                         }}
                       >
                         <div className="flex items-center gap-2 text-xs font-bold" style={{ color: colorHex }}>
-                          {service.mediaItems.some(m => m.type === 'video') && (
+                          {service.mediaItems.some(m => m.type === 'video') ? (
                             <Film className="w-3.5 h-3.5" />
-                          )}
-                          {service.mediaItems.some(m => m.type === 'audio') && (
+                          ) : service.mediaItems.some(m => m.type === 'audio') ? (
                             <Music className="w-3.5 h-3.5" />
-                          )}
-                          {service.mediaItems.every(m => m.type === 'image') && (
+                          ) : (
                             <ImageIcon className="w-3.5 h-3.5" />
                           )}
-                          <span>Ver {service.mediaItems.length} Muestras & Reproducir</span>
+                          <span>Muestras de Contenido</span>
                         </div>
                         <span 
-                          className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-lg bg-white dark:bg-[#0E1712] shadow-xs group-hover/media:translate-x-0.5 transition-transform" 
+                          className="inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1 rounded-md bg-white dark:bg-[#0E1712] shadow-sm group-hover/media:scale-105 transition-transform" 
                           style={{ color: colorHex }}
                         >
                           <Play className="w-3 h-3 fill-current" />

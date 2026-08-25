@@ -10,13 +10,15 @@ import { MediaShowcaseModal } from './components/MediaShowcaseModal';
 import { AdminLogin } from './components/admin/AdminLogin';
 import { AdminPanel } from './components/admin/AdminPanel';
 import { ServiceItem, MediaItem } from './types';
+import { useData } from './context/DataContext';
 import { MessageSquare } from 'lucide-react';
 import { getWhatsAppUrl } from './data/socialLinks';
 
-const CURRENT_VERSION = 'v2.2.1';
+const CURRENT_VERSION = 'v2.3.1';
 const ADMIN_AUTH_SESSION_KEY = 'hma_admin_auth_v1';
 
 export default function App() {
+  const { siteConfig } = useData();
   const [selectedService, setSelectedService] = useState<ServiceItem | null>(null);
   const [mediaShowcaseService, setMediaShowcaseService] = useState<ServiceItem | null>(null);
   const [initialMediaItem, setInitialMediaItem] = useState<MediaItem | null>(null);
@@ -103,6 +105,7 @@ export default function App() {
     if (!isAdminAuthenticated) {
       return (
         <AdminLogin 
+          onSuccess={handleAdminLoginSuccess}
           onLoginSuccess={handleAdminLoginSuccess}
           onCancel={navigateToHome}
         />
@@ -113,6 +116,7 @@ export default function App() {
       <AdminPanel 
         onLogout={handleAdminLogout}
         onBackToSite={navigateToHome}
+        onGoToPublicSite={navigateToHome}
       />
     );
   }
@@ -141,8 +145,10 @@ export default function App() {
           onOpenMedia={handleOpenMedia}
         />
 
-        {/* 3. Special Anniversary Section: "El Reloj de las 12 H" (2016-2026) */}
-        <ClockTimelineSection />
+        {/* 3. Special Anniversary Section: "El Reloj de las 12 H" (2016-2026) - Configurable from Admin */}
+        {siteConfig.showAnniversaryClock !== false && (
+          <ClockTimelineSection />
+        )}
 
         {/* 4. Portfolio Section */}
         <PortfolioSection
