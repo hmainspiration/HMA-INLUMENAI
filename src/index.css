@@ -1,184 +1,219 @@
 @import "tailwindcss";
 
-@variant dark (&:where(.dark, .dark *));
-
-@layer base {
-  :root {
-    --font-heading: 'Outfit', 'Plus Jakarta Sans', 'Aeonik', sans-serif;
-    --font-body: 'Nunito', sans-serif;
-    
-    /* Paleta Ficha Técnica HMA INLUMENAI */
-    --color-n-dark: #060C04;
-    --color-1-transcendence: #315629;
-    --color-2-watermark: #75C962;
-    --color-3-software: #11D7B6;
-    --color-4-music: #16A097;
-    --color-5-design: #2280AC;
-    --color-6-cinema: #2D60C1;
-    --color-7-photography: #3D80FD;
-    --color-8-temples: #7D77B0;
-    --color-9-type: #AE7176;
-    --color-10-visuals: #D96B43;
-    --color-11-print: #C99700;
-    --color-12-publishing: #D7BB11;
-    --color-b-light: #FEFAE8;
-
-    /* Institucional & Clústeres */
-    --color-inst-black: #060C04;
-    --color-inst-white: #FFFFFF;
-    --color-inst-gray: #6B7280;
-    --color-inst-lightgray: #E5E7EB;
-
-    /* Clústeres cromáticos */
-    --cluster-01: #2280AC;
-    --cluster-02: #3D80FD;
-    --cluster-03: #D7BB11;
-    --cluster-04: #11D7B6;
-  }
-
-  body {
-    font-family: var(--font-body);
-    color: #111827;
-    background-color: #FAFAFC;
-    overflow-x: hidden;
-    transition: background-color 0.3s ease, color 0.3s ease;
-  }
-
-  .dark body,
-  html.dark body {
-    color: #F3F4F6;
-    background-color: #060C04;
-  }
-
-  h1, h2, h3, h4, h5, h6, .font-heading {
-    font-family: var(--font-heading);
-    letter-spacing: -0.02em;
-  }
+/* Typography: Custom Local Font Faces */
+@font-face {
+  font-family: 'Aeonik';
+  src: url('/fonts/Aeonik-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
 }
 
-/* Custom glow and glass utilities */
-.glow-cyan:hover {
-  box-shadow: 0 10px 30px -5px rgba(17, 215, 182, 0.35), 0 0 0 1px rgba(17, 215, 182, 0.5);
+@font-face {
+  font-family: 'Aeonik';
+  src: url('/fonts/Aeonik-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
 }
 
-.glow-blue:hover {
-  box-shadow: 0 10px 30px -5px rgba(61, 128, 253, 0.35), 0 0 0 1px rgba(61, 128, 253, 0.5);
+@font-face {
+  font-family: 'Aeonik';
+  src: url('/fonts/Aeonik-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
 }
 
-.glow-gold:hover {
-  box-shadow: 0 10px 30px -5px rgba(215, 187, 17, 0.35), 0 0 0 1px rgba(215, 187, 17, 0.5);
+@font-face {
+  font-family: 'Newsreader';
+  src: url('/fonts/Newsreader_60pt-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
 }
 
-.glow-emerald:hover {
-  box-shadow: 0 10px 30px -5px rgba(117, 201, 98, 0.35), 0 0 0 1px rgba(117, 201, 98, 0.5);
+@font-face {
+  font-family: 'Newsreader';
+  src: url('/fonts/Newsreader_60pt-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
 }
 
-/* Glass effect */
-.glass-panel {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+@font-face {
+  font-family: 'Newsreader';
+  src: url('/fonts/Newsreader_60pt-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
 }
 
-.dark .glass-panel {
-  background: rgba(14, 23, 18, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+@font-face {
+  font-family: 'Newsreader';
+  src: url('/fonts/Newsreader_9pt-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
 }
 
-/* Aurial Animated Background Spheres (aurial.html) */
-@keyframes float-cyan {
-  0%, 100% {
-    transform: translate(0vw, 0vh) scale(1);
-    filter: blur(100px) brightness(1);
-    opacity: 0.7;
-  }
-  25% {
-    transform: translate(-30vw, 24vh) scale(1.3);
-    filter: blur(120px) brightness(1.35);
-    opacity: 0.85;
-  }
-  50% {
-    transform: translate(-45vw, 38vh) scale(0.85);
-    filter: blur(90px) brightness(0.75);
-    opacity: 0.5;
-  }
-  75% {
-    transform: translate(-20vw, 15vh) scale(1.25);
-    filter: blur(110px) brightness(1.25);
-    opacity: 0.8;
-  }
+:root {
+  /* Fondos Base Universales */
+  --hma-base-luz: #FEFAE8;
+  --hma-base-profundo: #060C04;
+
+  /* Marca Madre e Imagination */
+  --hma-brand-luz: #3D80FD;
+  --hma-brand-profundo: #2D60C1;
+
+  /* Los 12 Servicios */
+  --hma-heritage-luz: #315629;
+  --hma-heritage-profundo: #1B3315;
+
+  --hma-melody-luz: #108591;
+  --hma-melody-profundo: #074349;
+
+  --hma-architecture-luz: #7D77B0;
+  --hma-architecture-profundo: #514B7D;
+
+  --hma-imagination-luz: #3D80FD;
+  --hma-imagination-profundo: #2D60C1;
+
+  --hma-narratives-luz: #C5A367;
+  --hma-narratives-profundo: #82600A;
+
+  --hma-lenses-luz: #052D63;
+  --hma-lenses-profundo: #031C3D;
+
+  --hma-underline-luz: #D96B43;
+  --hma-underline-profundo: #964222;
+
+  --hma-merchandise-luz: #D7BB11;
+  --hma-merchandise-profundo: #8C7907;
+
+  --hma-experiences-luz: #1D5B8F;
+  --hma-experiences-profundo: #1B3F67;
+
+  --hma-network-luz: #11D7B6;
+  --hma-network-profundo: #0A826E;
+
+  --hma-alphabets-luz: #AE7176;
+  --hma-alphabets-profundo: #77454A;
+
+  --hma-illustrations-luz: #75C962;
+  --hma-illustrations-profundo: #4B893C;
+
+  /* Spacing base 8px */
+  --hma-space-1: 8px;
+  --hma-space-2: 16px;
+  --hma-space-3: 24px;
+  --hma-space-4: 32px;
+  --hma-space-6: 48px;
+  --hma-space-8: 64px;
+  --hma-space-12: 96px;
+
+  /* Radios */
+  --hma-radius-card: 12px;
+  --hma-radius-btn: 9999px;
+  --hma-radius-badge: 6px;
 }
 
-@keyframes float-matrix {
-  0%, 100% {
-    transform: translate(0vw, 0vh) scale(1);
-    filter: blur(100px) brightness(1);
-    opacity: 0.7;
-  }
-  25% {
-    transform: translate(30vw, -24vh) scale(1.3);
-    filter: blur(120px) brightness(1.35);
-    opacity: 0.85;
-  }
-  50% {
-    transform: translate(45vw, -38vh) scale(0.85);
-    filter: blur(90px) brightness(0.75);
-    opacity: 0.5;
-  }
-  75% {
-    transform: translate(20vw, -15vh) scale(1.25);
-    filter: blur(110px) brightness(1.25);
-    opacity: 0.8;
-  }
+/* Typography Family Definitions */
+.font-aeonik {
+  font-family: 'Aeonik', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  letter-spacing: 0.03em;
 }
 
-.animate-aurial-cyan {
-  animation: float-cyan 18s ease-in-out infinite alternate;
+.font-dosis {
+  font-family: 'Dosis', sans-serif;
 }
 
-.animate-aurial-matrix {
-  animation: float-matrix 22s ease-in-out infinite alternate;
+.font-general {
+  font-family: 'General Sans', 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-/* Texture dot grid for aurial */
-.aurial-grid-bg {
-  background-image: radial-gradient(rgba(17, 215, 182, 0.18) 1px, transparent 1px);
-  background-size: 38px 38px;
+.font-newsreader {
+  font-family: 'Newsreader', Georgia, serif;
 }
 
-.dark .aurial-grid-bg {
-  background-image: radial-gradient(rgba(17, 215, 182, 0.12) 1px, transparent 1px);
-  background-size: 38px 38px;
+/* Typographic scale rules */
+.type-display {
+  font-family: 'Aeonik', 'Plus Jakarta Sans', sans-serif;
+  font-weight: 700;
+  font-size: clamp(2.25rem, 5vw, 3.5rem); /* 36px to 56px */
+  line-height: 1.1;
+  letter-spacing: 0.03em;
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+.type-h1 {
+  font-family: 'Aeonik', 'Plus Jakarta Sans', sans-serif;
+  font-weight: 600;
+  font-size: clamp(1.85rem, 3.5vw, 2.5rem); /* ~30px to 40px */
+  line-height: 1.1;
+  letter-spacing: 0.015em;
 }
 
-::-webkit-scrollbar-track {
-  background: #F3F4F6;
+.type-h2 {
+  font-family: 'Dosis', sans-serif;
+  font-weight: 700;
+  font-size: clamp(1.5rem, 2.5vw, 2rem); /* 24px to 32px */
+  line-height: 1.15;
+  letter-spacing: 0.015em;
 }
 
-.dark ::-webkit-scrollbar-track {
-  background: #060C04;
+.type-h3 {
+  font-family: 'Dosis', sans-serif;
+  font-weight: 600;
+  font-size: clamp(1.25rem, 2vw, 1.5rem); /* 20px to 24px */
+  line-height: 1.2;
 }
 
-::-webkit-scrollbar-thumb {
-  background: #D1D5DB;
+.type-body {
+  font-family: 'General Sans', 'Plus Jakarta Sans', sans-serif;
+  font-size: 1rem; /* 16px */
+  line-height: 1.6;
+}
+
+.type-caption {
+  font-family: 'General Sans', 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.8125rem; /* 13px */
+  line-height: 1.35;
+}
+
+/* Button Horizontal Padding 2x Vertical Padding Rule */
+.btn-primary {
+  font-family: 'General Sans', 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  padding: 10px 20px;
   border-radius: 9999px;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.dark ::-webkit-scrollbar-thumb {
-  background: #1F2D24;
+.btn-lg {
+  padding: 14px 28px;
+  font-size: 1rem;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #9CA3AF;
+html, body {
+  min-height: 100%;
+  background-color: var(--hma-base-luz);
+  color: var(--hma-base-profundo);
+  font-family: 'General Sans', 'Plus Jakarta Sans', sans-serif;
+  scroll-behavior: smooth;
+  margin: 0;
+  padding: 0;
 }
 
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: #2D4234;
+/* Smooth selection and focus */
+::selection {
+  background-color: rgba(61, 128, 253, 0.2);
+  color: #060C04;
+}
+
+:focus-visible {
+  outline: 2px solid #3D80FD;
+  outline-offset: 2px;
 }

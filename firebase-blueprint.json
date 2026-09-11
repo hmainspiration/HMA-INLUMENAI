@@ -1,0 +1,48 @@
+{
+  "entities": {
+    "SiteConfig": {
+      "collection": "site_config",
+      "fields": {
+        "contactEmail": { "type": "string" },
+        "contactPhone": { "type": "string" },
+        "heroTitle": { "type": "string" },
+        "heroHighlight": { "type": "string" },
+        "heroDescription": { "type": "string" },
+        "heroMetric1Value": { "type": "string" },
+        "heroMetric1Label": { "type": "string" },
+        "heroMetric2Value": { "type": "string" },
+        "heroMetric2Label": { "type": "string" },
+        "heroMetric3Value": { "type": "string" },
+        "heroMetric3Label": { "type": "string" },
+        "heroMotion": { "type": "map" },
+        "showHero": { "type": "boolean" },
+        "showArchitecture": { "type": "boolean" },
+        "showServices": { "type": "boolean" },
+        "showDifferentiators": { "type": "boolean" },
+        "showTimeline": { "type": "boolean" },
+        "showContact": { "type": "boolean" },
+        "updatedAt": { "type": "timestamp" }
+      }
+    },
+    "PortfolioConfig": {
+      "collection": "portfolio_config",
+      "fields": {
+        "services": { "type": "map" },
+        "updatedAt": { "type": "timestamp" }
+      }
+    },
+    "Inquiry": {
+      "collection": "inquiries",
+      "fields": {
+        "nombre": { "type": "string" },
+        "organizacion": { "type": "string" },
+        "email": { "type": "string" },
+        "telefono": { "type": "string" },
+        "servicio": { "type": "string" },
+        "mensaje": { "type": "string" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "timestamp" }
+      }
+    }
+  }
+}

@@ -1,172 +1,254 @@
 import React from 'react';
-import { HmaLogo } from './HmaLogo';
-import { SocialMediaBar } from './SocialMediaBar';
-import { MessageSquare, HelpCircle, ArrowUp, Sparkles } from 'lucide-react';
-import { SOCIAL_LINKS } from '../data/socialLinks';
+import { IsotipoMaestroVector, BrandWordmark, UtilitarianIcon } from './BrandLogos';
+import { ActivePage, ServiceId } from '../types';
+import { SERVICES } from '../data/brandData';
+import { getSiteConfig, SiteConfig } from '../utils/store';
+import { useEffect, useState } from 'react';
 
 interface FooterProps {
-  onOpenAdmin?: () => void;
+  isNegative?: boolean;
+  onNavigate: (page: ActivePage) => void;
+  onSelectService: (id: ServiceId) => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onOpenAdmin }) => {
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+export const Footer: React.FC<FooterProps> = ({
+  isNegative = false,
+  onNavigate,
+  onSelectService
+}) => {
+  const [config, setConfig] = useState<SiteConfig | null>(null);
+
+  useEffect(() => {
+    setConfig(getSiteConfig());
+  }, []);
 
   return (
-    <footer className="bg-[#0B1120] text-white pt-16 pb-32 md:pb-28 border-t border-gray-800 relative overflow-hidden">
-      {/* Subtle Background Watermark using Monochrome HMA Logo */}
-      <div 
-        className="absolute -right-16 -bottom-16 w-96 h-96 opacity-[0.03] pointer-events-none select-none text-white"
-        aria-hidden="true"
-      >
-        <HmaLogo variant="monochrome" color="currentColor" className="w-full h-full" />
-      </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        
-        {/* Main Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-10 pb-12 border-b border-gray-800">
-          
-          {/* Col 1: Brand & Isologo & Social Media */}
-          <div className="md:col-span-5 flex flex-col items-start">
-            <div className="flex items-center gap-3 mb-4">
-              {/* Isologo with safe area (44px) */}
-              <div className="w-11 h-11 shrink-0">
-                <HmaLogo variant="monochrome" color="#FFFFFF" className="w-11 h-11" />
-              </div>
-              <div>
-                <h3 className="text-xl font-black font-heading tracking-tight text-white leading-none">
-                  HMA INLUMENAI
-                </h3>
-                <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider block mt-1">
-                  Ecosistema Creativo & Tecnológico
-                </span>
-              </div>
+    <footer
+      className={`border-t pt-16 pb-12 transition-colors text-left ${
+        isNegative
+          ? 'bg-[#060C04] border-[#FEFAE8]/10 text-[#FEFAE8]'
+          : 'bg-[#FEFAE8] border-[#060C04]/10 text-[#060C04]'
+      }`}
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-10">
+          {/* Brand Col */}
+          <div className="md:col-span-4 space-y-4">
+            <div className="flex items-center gap-3">
+              <IsotipoMaestroVector width={36} height={36} isNegative={isNegative} />
+              <BrandWordmark isNegative={isNegative} />
             </div>
-
-            <p className="text-xs sm:text-sm text-gray-400 max-w-sm mb-5 leading-relaxed">
-              La Creatividad es Un Regalo de Dios. Impulsamos tus proyectos a través de identidad visual, producción sonora, preservación de memoria y desarrollo tecnológico.
+            <p className="font-aeonik italic text-sm text-[#3D80FD] font-semibold">
+              "En la luz de cada idea."
             </p>
-
-            {/* Social Media Links List */}
-            <div className="mb-2">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400 block mb-2">
-                Redes & Contacto Oficial:
-              </span>
-              <SocialMediaBar variant="footer" />
+            <p className={`font-general text-xs leading-relaxed max-w-sm ${
+              isNegative ? 'text-[#FEFAE8]/70' : 'text-[#060C04]/70'
+            }`}>
+              Marca Matrix multiservicios nicaragüense con proyección hispanoamericana. Una década integrando disciplinas creativas, audiovisuales, espaciales y tecnológicas con IA.
+            </p>
+            <div className="pt-2">
+              <a
+                href={`mailto:${config?.contactEmail || 'inlumenaihma@gmail.com'}`}
+                className="font-general text-xs inline-flex items-center gap-1.5 text-[#3D80FD] hover:underline"
+              >
+                <UtilitarianIcon name="email" size={14} color="#3D80FD" />
+                <span>{config?.contactEmail || 'inlumenaihma@gmail.com'}</span>
+              </a>
             </div>
           </div>
 
-          {/* Col 2: 4 Clusters Links */}
-          <div className="md:col-span-4">
-            <h4 className="text-xs font-black uppercase tracking-wider text-gray-400 font-heading mb-4">
-              Clústeres de Servicios HMA
+          {/* Quick Links */}
+          <div className="md:col-span-2 space-y-3">
+            <h4 className="font-dosis text-base font-bold uppercase tracking-wider text-[#3D80FD]">
+              Navegación
             </h4>
-            <ul className="space-y-2.5 text-xs">
+            <ul className="space-y-2 font-general text-xs">
               <li>
-                <a href="#servicios" className="text-gray-300 hover:text-white transition-colors block py-0.5">
-                  <span className="font-semibold text-gray-200">01</span> — Identidad & Arte (HMA DESIGN, HMA TYPE, HMA VISUALS)
-                </a>
+                <button
+                  onClick={() => onNavigate({ type: 'home' })}
+                  className="hover:text-[#3D80FD] cursor-pointer"
+                >
+                  Inicio Ecosistema
+                </button>
               </li>
               <li>
-                <a href="#servicios" className="text-gray-300 hover:text-white transition-colors block py-0.5">
-                  <span className="font-semibold text-gray-200">02</span> — Audiovisual & Sonido (HMA PHOTOGRAPHY, HMA MUSIC, HMA CINEMA)
-                </a>
+                <button
+                  onClick={() => onNavigate({ type: 'trajectory' })}
+                  className="hover:text-[#3D80FD] cursor-pointer"
+                >
+                  Trayectoria 2016 → 2026
+                </button>
               </li>
               <li>
-                <a href="#servicios" className="text-gray-300 hover:text-white transition-colors block py-0.5">
-                  <span className="font-semibold text-gray-200">03</span> — Fe, Palabra & Legado (HMA TEMPLES, HMA PUBLISHING, HMA TRANSCENDENCE)
-                </a>
-              </li>
-              <li>
-                <a href="#servicios" className="text-gray-300 hover:text-white transition-colors block py-0.5">
-                  <span className="font-semibold text-gray-200">04</span> — Tecnología & Producción Física (HMA WATERMARK, HMA SOFTWARE, HMA PRINT)
-                </a>
+                <button
+                  onClick={() => onNavigate({ type: 'contact' })}
+                  className="hover:text-[#3D80FD] cursor-pointer"
+                >
+                  Contacto & Asesoría
+                </button>
               </li>
             </ul>
           </div>
 
-          {/* Col 3: Quick Links & Guide */}
-          <div className="md:col-span-3">
-            <h4 className="text-xs font-black uppercase tracking-wider text-gray-400 font-heading mb-4">
-              Navegación Rápida
+          {/* Services Group 1 */}
+          <div className="md:col-span-3 space-y-3">
+            <h4 className="font-dosis text-base font-bold uppercase tracking-wider text-[#3D80FD]">
+              Los 12 Servicios (I)
             </h4>
-            <ul className="space-y-2 text-xs mb-6">
-              <li>
-                <a href="#inicio" className="text-gray-300 hover:text-[#00B4D8] transition-colors">
-                  Inicio Institucional
-                </a>
-              </li>
-              <li>
-                <a href="#servicios" className="text-gray-300 hover:text-[#00B4D8] transition-colors">
-                  Catálogo de 12 Servicios
-                </a>
-              </li>
-              <li>
-                <a href="#reloj-10-anos" className="text-amber-400 hover:text-amber-300 font-bold transition-colors">
-                  10 Años · El Reloj de las 12 H (Especial)
-                </a>
-              </li>
-              <li>
-                <a href="#portafolio" className="text-gray-300 hover:text-[#00B4D8] transition-colors">
-                  Portafolio de Proyectos
-                </a>
-              </li>
+            <ul className="space-y-1.5 font-general text-xs opacity-80">
+              {SERVICES.slice(0, 6).map((s) => (
+                <li key={s.id}>
+                  <button
+                    onClick={() => onSelectService(s.id)}
+                    className="hover:text-[#3D80FD] cursor-pointer inline-flex items-center gap-1.5"
+                  >
+                    <span className="font-bold font-aeonik text-[11px]" style={{ color: s.luzColor }}>{s.letter}</span>
+                    <span>· {s.name}</span>
+                  </button>
+                </li>
+              ))}
             </ul>
+          </div>
 
-            {onOpenAdmin ? (
-              <button
-                onClick={onOpenAdmin}
-                className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-gray-800/80 hover:bg-gray-700 text-xs font-bold text-gray-300 hover:text-white border border-gray-700/80 transition-colors cursor-pointer"
-              >
-                <Sparkles className="w-3.5 h-3.5 text-[#11D7B6]" />
-                <span>Panel de Administración</span>
-              </button>
-            ) : (
+          {/* Services Group 2 */}
+          <div className="md:col-span-3 space-y-3">
+            <h4 className="font-dosis text-base font-bold uppercase tracking-wider text-[#3D80FD]">
+              Los 12 Servicios (II)
+            </h4>
+            <ul className="space-y-1.5 font-general text-xs opacity-80">
+              {SERVICES.slice(6, 12).map((s) => (
+                <li key={s.id}>
+                  <button
+                    onClick={() => onSelectService(s.id)}
+                    className="hover:text-[#3D80FD] cursor-pointer inline-flex items-center gap-1.5"
+                  >
+                    <span className="font-bold font-aeonik text-[11px]" style={{ color: s.luzColor }}>{s.letter}</span>
+                    <span>· {s.name}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        {/* Utilitarian Social & Contact Bar matching official iconography */}
+        <div className="pt-8 border-t border-current/10 flex flex-col sm:flex-row items-center justify-between gap-6">
+          <div className="flex items-center flex-wrap gap-2.5 sm:gap-3">
+            {/* 1. WhatsApp */}
+            <a
+              href={config?.socialWhatsapp || 'https://wa.me/50584620554'}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-center ${
+                isNegative
+                  ? 'border-[#FEFAE8]/15 bg-[#FEFAE8]/5 hover:bg-[#FEFAE8]/15 text-[#FEFAE8]'
+                  : 'border-[#060C04]/15 bg-white hover:bg-[#060C04]/5 text-[#060C04] shadow-xs'
+              }`}
+              title="WhatsApp Oficial"
+            >
+              <UtilitarianIcon name="whatsapp" size={18} />
+            </a>
+
+            {/* 2. Phone */}
+            <a
+              href={`tel:${(config?.contactPhone || '+50584620554').replace(/\s+/g, '')}`}
+              className={`p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-center ${
+                isNegative
+                  ? 'border-[#FEFAE8]/15 bg-[#FEFAE8]/5 hover:bg-[#FEFAE8]/15 text-[#FEFAE8]'
+                  : 'border-[#060C04]/15 bg-white hover:bg-[#060C04]/5 text-[#060C04] shadow-xs'
+              }`}
+              title="Llamada Telefónica"
+            >
+              <UtilitarianIcon name="phone" size={18} />
+            </a>
+
+            {/* 3. Email */}
+            <a
+              href={`mailto:${config?.contactEmail || 'inlumenaihma@gmail.com'}`}
+              className={`p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-center ${
+                isNegative
+                  ? 'border-[#FEFAE8]/15 bg-[#FEFAE8]/5 hover:bg-[#FEFAE8]/15 text-[#FEFAE8]'
+                  : 'border-[#060C04]/15 bg-white hover:bg-[#060C04]/5 text-[#060C04] shadow-xs'
+              }`}
+              title="Email de Contacto"
+            >
+              <UtilitarianIcon name="email" size={18} />
+            </a>
+
+            {/* 4. Website */}
+            <button
+              type="button"
+              onClick={() => {
+                onNavigate({ type: 'home' });
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className={`p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-center ${
+                isNegative
+                  ? 'border-[#FEFAE8]/15 bg-[#FEFAE8]/5 hover:bg-[#FEFAE8]/15 text-[#FEFAE8]'
+                  : 'border-[#060C04]/15 bg-white hover:bg-[#060C04]/5 text-[#060C04] shadow-xs'
+              }`}
+              title="Portal Web HMA INLUMENAI"
+            >
+              <UtilitarianIcon name="website" size={18} />
+            </button>
+
+            {/* 5. Instagram */}
+            {config?.socialInstagram && (
               <a
-                href="/admin"
-                className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-gray-800/80 hover:bg-gray-700 text-xs font-bold text-gray-300 hover:text-white border border-gray-700/80 transition-colors"
+                href={config.socialInstagram}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-center ${
+                  isNegative
+                    ? 'border-[#FEFAE8]/15 bg-[#FEFAE8]/5 hover:bg-[#FEFAE8]/15 text-[#FEFAE8]'
+                    : 'border-[#060C04]/15 bg-white hover:bg-[#060C04]/5 text-[#060C04] shadow-xs'
+                }`}
+                title="Instagram Oficial"
               >
-                <Sparkles className="w-3.5 h-3.5 text-[#11D7B6]" />
-                <span>Acceso Administrador</span>
+                <UtilitarianIcon name="instagram" size={18} />
+              </a>
+            )}
+
+            {/* 6. Facebook */}
+            {config?.socialFacebook && (
+              <a
+                href={config.socialFacebook}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-center ${
+                  isNegative
+                    ? 'border-[#FEFAE8]/15 bg-[#FEFAE8]/5 hover:bg-[#FEFAE8]/15 text-[#FEFAE8]'
+                    : 'border-[#060C04]/15 bg-white hover:bg-[#060C04]/5 text-[#060C04] shadow-xs'
+                }`}
+                title="Facebook Oficial"
+              >
+                <UtilitarianIcon name="facebook" size={18} />
+              </a>
+            )}
+
+            {/* 7. YouTube */}
+            {config?.socialYoutube && (
+              <a
+                href={config.socialYoutube}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-center ${
+                  isNegative
+                    ? 'border-[#FEFAE8]/15 bg-[#FEFAE8]/5 hover:bg-[#FEFAE8]/15 text-[#FEFAE8]'
+                    : 'border-[#060C04]/15 bg-white hover:bg-[#060C04]/5 text-[#060C04] shadow-xs'
+                }`}
+                title="Canal de YouTube"
+              >
+                <UtilitarianIcon name="youtube" size={18} />
               </a>
             )}
           </div>
 
+          <p className={`font-general text-xs ${isNegative ? 'text-[#FEFAE8]/50' : 'text-[#060C04]/50'}`}>
+            © 2016–2026 HMA INLUMENAI. Todos los derechos reservados. {config?.showLocation && config?.locationAddress ? config.locationAddress : 'Servicio Actualmente en Línea'}.
+          </p>
         </div>
-
-        {/* Bottom Bar */}
-        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-400">
-          <div className="flex flex-col sm:flex-row items-center gap-3">
-            <p>© 2016 – 2026 HMA INLUMENAI. Todos los derechos reservados.</p>
-            <span className="hidden sm:inline text-gray-600">·</span>
-            <span className="px-2 py-0.5 rounded-full bg-gray-800 text-[#11D7B6] font-mono text-[10px] font-bold border border-gray-700">
-              v2.3.0 · Aniversario 10 Años Configurable & UI Limpia para Clientes
-            </span>
-          </div>
-          
-          <div className="flex items-center gap-4">
-            <a
-              href={SOCIAL_LINKS.whatsapp.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[#00B4D8] hover:underline font-bold flex items-center gap-1.5"
-            >
-              <MessageSquare className="w-3.5 h-3.5" />
-              <span>Atención directa vía WhatsApp</span>
-            </a>
-
-            <button
-              onClick={scrollToTop}
-              className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 transition-colors cursor-pointer"
-              title="Volver arriba"
-            >
-              <ArrowUp className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-
       </div>
     </footer>
   );

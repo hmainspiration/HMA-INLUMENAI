@@ -1,148 +1,137 @@
-import React, { useState } from 'react';
-import { HmaLogo } from './HmaLogo';
-import { HmaMetamorphosisLogo } from './HmaMetamorphosisLogo';
-import { Sparkles, Clock, ArrowRight, ShieldCheck, CheckCircle2, Wand2, Eye } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { AnimatedIsotipo } from './AnimatedIsotipo';
+import { MASTER_SHAPES } from '../data/brandData';
+import { ArrowDown, Sparkles, Layers } from 'lucide-react';
+import { getSiteConfig, SiteConfig } from '../utils/store';
+import { HeroMotionBackground } from './HeroMotionBackground';
 
 interface HeroProps {
+  isNegative?: boolean;
   onExploreServices: () => void;
-  onExploreAnniversary: () => void;
+  onExploreEcosystem: () => void;
 }
 
 export const Hero: React.FC<HeroProps> = ({
+  isNegative = false,
   onExploreServices,
-  onExploreAnniversary,
+  onExploreEcosystem
 }) => {
-  const [logoMode, setLogoMode] = useState<'morph' | 'static'>('morph');
+  const [config, setConfig] = useState<SiteConfig | null>(null);
+
+  useEffect(() => {
+    setConfig(getSiteConfig());
+  }, []);
 
   return (
-    <section id="inicio" className="relative pt-10 pb-20 md:pt-16 md:pb-28 overflow-hidden bg-gradient-to-b from-[#FAFAFC] via-[#F3F8F9] to-[#FAFAFC] dark:from-[#060C04] dark:via-[#0A130D] dark:to-[#060C04] transition-colors duration-300">
-      
-      {/* Aurial Ambient Background System (aurial.html) */}
-      {/* 1. Radial Texture Dot Grid */}
-      <div className="absolute inset-0 aurial-grid-bg opacity-75 dark:opacity-40 pointer-events-none" />
-
-      {/* 2. Floating Cyan Ambient Sphere (#11D7B6) */}
-      <div 
-        className="absolute top-[-10%] right-[-5%] w-[450px] sm:w-[600px] h-[450px] sm:h-[600px] rounded-full bg-[#11D7B6]/25 dark:bg-[#11D7B6]/20 blur-[110px] pointer-events-none animate-aurial-cyan"
+    <section className="relative overflow-hidden pt-12 pb-20 lg:pt-16 lg:pb-28">
+      {/* Background Animated Motion Matrix */}
+      <HeroMotionBackground
+        isNegative={isNegative}
+        config={config?.heroMotion}
       />
 
-      {/* 3. Floating Matriz Blue Ambient Sphere (#2D60C1 / #3D80FD) */}
-      <div 
-        className="absolute bottom-[-10%] left-[-5%] w-[450px] sm:w-[650px] h-[450px] sm:h-[650px] rounded-full bg-[#2D60C1]/25 dark:bg-[#3D80FD]/20 blur-[110px] pointer-events-none animate-aurial-matrix"
-      />
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      {/* Structural backdrop subtle guides */}
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
-          
-          {/* Left Column: Institutional Message & Actions */}
-          <div className="lg:col-span-7 flex flex-col items-start text-left">
-            
-            {/* Ecosystem Badge */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#11D7B6]/10 dark:bg-[#11D7B6]/15 border border-[#11D7B6]/30 dark:border-[#11D7B6]/35 text-[#0C947D] dark:text-[#11D7B6] text-xs font-bold uppercase tracking-wider mb-6 shadow-xs backdrop-blur-sm">
-              <Sparkles className="w-3.5 h-3.5 text-[#11D7B6]" />
-              Ecosistema Creativo & Tecnológico InLumenAI
+          {/* Left Column: Typography & Ecosystem Proposition */}
+          <div className="lg:col-span-7 space-y-6 text-left">
+            {/* Trajectory Badge */}
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-general font-medium transition-colors"
+                 style={{
+                   borderColor: isNegative ? 'rgba(254, 250, 232, 0.15)' : 'rgba(6, 12, 4, 0.12)',
+                   backgroundColor: isNegative ? 'rgba(254, 250, 232, 0.05)' : 'rgba(6, 12, 4, 0.03)'
+                 }}>
+              <span className="w-2 h-2 rounded-full bg-[#3D80FD] animate-pulse" />
+              <span className="font-semibold tracking-wide">10 AÑOS DE TRAYECTORIA (2016 → 2026)</span>
+              <span className="opacity-40">|</span>
+              <span className="opacity-80">NICARAGUA & HISPANOAMÉRICA</span>
             </div>
 
-            {/* Main Institutional Headline */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-[#060C04] dark:text-[#FEFAE8] font-heading tracking-tight leading-[1.08] mb-6">
-              La Creatividad es <br className="hidden sm:block" />
-              <span className="bg-gradient-to-r from-[#2280AC] via-[#2D60C1] to-[#11D7B6] dark:from-[#3D80FD] dark:via-[#11D7B6] dark:to-[#75C962] bg-clip-text text-transparent">
-                Un Regalo de Dios
-              </span>
+            {/* Main Universal Display Headline */}
+            <h1 className="type-display text-balance">
+              {config?.heroTitle || 'La Creatividad es un'} <span className="text-[#3D80FD]">{config?.heroHighlight || 'Regalo de Dios'}</span>.
             </h1>
 
-            {/* Subtitle */}
-            <p className="text-lg sm:text-xl text-[#374151] dark:text-gray-300 font-normal leading-relaxed max-w-2xl mb-8">
-              Lleva tus ideas a la realidad, usando nuestros servicios que te permitan construirlo con confianza y seguridad.
+            {/* Value Proposition Body */}
+            <p className={`type-body text-lg sm:text-xl max-w-2xl leading-relaxed ${
+              isNegative ? 'text-[#FEFAE8]/80' : 'text-[#060C04]/80'
+            }`}>
+              {config?.heroDescription || 'Construimos sistemas de identidad visual y herramientas creativas de impacto.'}
             </p>
 
-            {/* Action Buttons */}
-            <div className="flex flex-wrap items-center gap-4 w-full sm:w-auto">
-              <a
-                href="#servicios"
-                onClick={(e) => {
-                  e.preventDefault();
-                  onExploreServices();
-                }}
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-gradient-to-r from-[#2280AC] to-[#11D7B6] hover:from-[#1B6F96] hover:to-[#0EC2A4] active:scale-98 text-white font-black text-base shadow-lg shadow-[#11D7B6]/25 hover:shadow-xl hover:shadow-[#11D7B6]/35 transition-all transform hover:-translate-y-0.5 cursor-pointer"
-              >
-                <span>Explorar Catálogo de Servicios</span>
-                <ArrowRight className="w-5 h-5" />
-              </a>
-
-              <a
-                href="#reloj-10-anos"
-                onClick={(e) => {
-                  e.preventDefault();
-                  onExploreAnniversary();
-                }}
-                className="inline-flex items-center justify-center gap-2 px-6 py-4 rounded-full bg-white/90 dark:bg-[#0E1712] hover:bg-amber-50/50 dark:hover:bg-[#15231B] text-[#060C04] dark:text-[#FEFAE8] font-bold text-base border-2 border-[#D7BB11] shadow-sm hover:shadow-md transition-all cursor-pointer group backdrop-blur-xs"
-              >
-                <Clock className="w-5 h-5 text-[#D7BB11] group-hover:rotate-90 transition-transform duration-300" />
-                <span>Ver Reloj 10 Años</span>
-              </a>
-            </div>
-
-            {/* Value Propositions */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-8 mt-8 border-t border-gray-200/80 dark:border-gray-800/80 w-full text-xs text-gray-600 dark:text-gray-400">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-[#11D7B6] shrink-0" />
-                <span className="font-semibold text-gray-900 dark:text-gray-200">12 Servicios en 4 Clústeres</span>
+            {/* Core Value Pillars - Quick Metric Tokens */}
+            <div className="grid grid-cols-3 gap-4 pt-2 max-w-xl">
+              <div className={`p-4 rounded-xl border ${
+                isNegative ? 'border-[#FEFAE8]/10 bg-[#FEFAE8]/5' : 'border-[#060C04]/8 bg-white/60'
+              }`}>
+                <div className="font-aeonik text-2xl font-bold text-[#3D80FD]">{config?.heroMetric1Value || '10'}</div>
+                <div className="font-general text-xs opacity-75 mt-0.5">{config?.heroMetric1Label || 'Años de evolución'}</div>
               </div>
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-[#75C962] shrink-0" />
-                <span className="font-semibold text-gray-900 dark:text-gray-200">Paleta Técnica Calibrada</span>
+              <div className={`p-4 rounded-xl border ${
+                isNegative ? 'border-[#FEFAE8]/10 bg-[#FEFAE8]/5' : 'border-[#060C04]/8 bg-white/60'
+              }`}>
+                <div className="font-aeonik text-2xl font-bold text-[#2D60C1]">{config?.heroMetric2Value || '12'}</div>
+                <div className="font-general text-xs opacity-75 mt-0.5">{config?.heroMetric2Label || 'Servicios autónomos'}</div>
               </div>
-              <div className="flex items-center gap-2 col-span-2 sm:col-span-1">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#D7BB11] shrink-0 animate-ping" />
-                <span className="font-semibold text-gray-900 dark:text-gray-200">10 Años de Trayectoria</span>
+              <div className={`p-4 rounded-xl border ${
+                isNegative ? 'border-[#FEFAE8]/10 bg-[#FEFAE8]/5' : 'border-[#060C04]/8 bg-white/60'
+              }`}>
+                <div className="font-aeonik text-2xl font-bold text-[#3D80FD]">{config?.heroMetric3Value || '13'}</div>
+                <div className="font-general text-xs opacity-75 mt-0.5">{config?.heroMetric3Label || 'Formas / 1 Eje Central'}</div>
               </div>
             </div>
 
+            {/* Action Buttons in General Sans */}
+            <div className="flex flex-wrap items-center gap-4 pt-4">
+              <button
+                onClick={onExploreServices}
+                className="btn-primary btn-lg bg-[#3D80FD] text-white hover:bg-[#2D60C1] shadow-md flex items-center gap-2 cursor-pointer"
+              >
+                <span>Explorar los 12 Servicios</span>
+                <ArrowDown className="w-4 h-4" />
+              </button>
+              <button
+                onClick={onExploreEcosystem}
+                className={`btn-primary btn-lg border flex items-center gap-2 cursor-pointer transition-colors ${
+                  isNegative
+                    ? 'border-[#FEFAE8]/20 text-[#FEFAE8] hover:bg-[#FEFAE8]/10'
+                    : 'border-[#060C04]/20 text-[#060C04] hover:bg-[#060C04]/5'
+                }`}
+              >
+                <Layers className="w-4 h-4 text-[#3D80FD]" />
+                <span>Arquitectura de Marca</span>
+              </button>
+            </div>
           </div>
 
-          {/* Right Column: Metamorphosis Vectorial Engine / 3D Monogram */}
+          {/* Right Column: Animated Master Logo (13 Shapes) */}
           <div className="lg:col-span-5 flex flex-col items-center justify-center">
-            
-            {/* View Mode Toggle Pill */}
-            <div className="inline-flex items-center p-1 rounded-xl bg-white/80 dark:bg-[#0E1712]/90 border border-gray-200 dark:border-gray-800 backdrop-blur-md shadow-xs mb-4">
-              <button
-                onClick={() => setLogoMode('morph')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  logoMode === 'morph'
-                    ? 'bg-[#2D60C1] text-white shadow-xs'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                }`}
-              >
-                <Wand2 className="w-3.5 h-3.5" />
-                <span>Metamorfosis Vectorial</span>
-              </button>
-              <button
-                onClick={() => setLogoMode('static')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  logoMode === 'static'
-                    ? 'bg-[#2D60C1] text-white shadow-xs'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                }`}
-              >
-                <Eye className="w-3.5 h-3.5" />
-                <span>Logotipo Estático</span>
-              </button>
-            </div>
+            <div className={`w-full max-w-[460px] p-8 sm:p-10 rounded-2xl border relative flex flex-col items-center justify-center transition-all ${
+              isNegative
+                ? 'bg-[#060C04]/60 border-[#FEFAE8]/10 shadow-2xl shadow-black/60'
+                : 'bg-white/70 border-[#060C04]/8 shadow-xl shadow-black/5'
+            }`}>
+              <div className="w-full aspect-square flex items-center justify-center">
+                <AnimatedIsotipo
+                  shapes={MASTER_SHAPES}
+                  serviceId="master-home"
+                  isServiceView={false}
+                  isNegative={isNegative}
+                  allowReplay={true}
+                />
+              </div>
 
-            {/* Display Component Container */}
-            <div className="relative w-full max-w-[480px] flex flex-col items-center justify-center">
-              {logoMode === 'morph' ? (
-                <HmaMetamorphosisLogo autoPlay={true} showControls={true} />
-              ) : (
-                <div className="relative w-full max-w-[380px] aspect-square flex items-center justify-center p-4">
-                  <HmaLogo variant="hero" />
-                </div>
-              )}
+              {/* Sub-label explaining the geometry */}
+              <div className="text-center mt-2">
+                <p className="font-general text-xs tracking-wider uppercase font-semibold text-[#3D80FD]">
+                  Isotipo Maestro
+                </p>
+                <p className={`font-general text-[11px] mt-0.5 ${isNegative ? 'text-[#FEFAE8]/60' : 'text-[#060C04]/60'}`}>
+                  12 Rectángulos Redondeados + 1 Círculo Central Constante
+                </p>
+              </div>
             </div>
-
           </div>
-
         </div>
       </div>
     </section>

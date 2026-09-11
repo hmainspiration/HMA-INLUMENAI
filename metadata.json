@@ -1,6 +1,6 @@
 {
   "name": "HMA INLUMENAI",
-  "description": "Sitio web institucional y ecosistema de 12 servicios para HMA INLUMENAI con Centro Multimedia integrado (reproductor de audio, video y fotos), línea de tiempo de 10 Años (El Reloj de las 12 H) y conexión directa a WhatsApp.",
+  "description": "Sitio web de HMA INLUMENAI, marca madre multiservicios de creatividad, tecnología e inteligencia artificial.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
