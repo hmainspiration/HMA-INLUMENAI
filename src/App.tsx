@@ -13,6 +13,7 @@ import { ServiceDetailView } from './components/ServiceDetailView';
 import { ContactSection } from './components/ContactSection';
 import { Footer } from './components/Footer';
 import { AdminPanel } from './components/AdminPanel';
+import { updateFavicon } from './utils/favicon';
 
 export default function App() {
   const [config, setConfig] = useState<SiteConfig | null>(null);
@@ -72,6 +73,7 @@ export default function App() {
     document.documentElement.style.backgroundColor = isNegative ? '#060C04' : '#FEFAE8';
     document.body.style.backgroundColor = isNegative ? '#060C04' : '#FEFAE8';
     document.body.style.color = isNegative ? '#FEFAE8' : '#060C04';
+    updateFavicon(isNegative);
   }, [isNegative]);
 
   const currentServiceItem =

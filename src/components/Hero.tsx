@@ -104,13 +104,9 @@ export const Hero: React.FC<HeroProps> = ({
             </div>
           </div>
 
-          {/* Right Column: Animated Master Logo (13 Shapes) */}
+          {/* Right Column: Animated Master Logo (13 Shapes) - Clean without box/card */}
           <div className="lg:col-span-5 flex flex-col items-center justify-center">
-            <div className={`w-full max-w-[460px] p-8 sm:p-10 rounded-2xl border relative flex flex-col items-center justify-center transition-all ${
-              isNegative
-                ? 'bg-[#060C04]/60 border-[#FEFAE8]/10 shadow-2xl shadow-black/60'
-                : 'bg-white/70 border-[#060C04]/8 shadow-xl shadow-black/5'
-            }`}>
+            <div className="w-full max-w-[460px] flex flex-col items-center justify-center">
               <div className="w-full aspect-square flex items-center justify-center">
                 <AnimatedIsotipo
                   shapes={MASTER_SHAPES}
@@ -122,7 +118,7 @@ export const Hero: React.FC<HeroProps> = ({
               </div>
 
               {/* Sub-label explaining the geometry */}
-              <div className="text-center mt-2">
+              <div className="text-center mt-3">
                 <p className="font-general text-xs tracking-wider uppercase font-semibold text-[#3D80FD]">
                   Isotipo Maestro
                 </p>

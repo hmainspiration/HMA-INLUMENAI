@@ -31,6 +31,7 @@ import {
   Copy,
   ExternalLink,
   Download,
+  Upload,
   Sparkles,
   RotateCcw,
   MessageSquare,
@@ -44,7 +45,9 @@ import {
   Flame
 } from 'lucide-react';
 import { extractYouTubeId, getYouTubeThumbnail } from './MediaRenderer';
-import { generateStandaloneMotionHtml } from './HeroMotionBackground';
+import { generateStandaloneMotionHtml, parseMotionHtmlToConfig } from './HeroMotionBackground';
+import { IsotipoMaestroVector } from './BrandLogos';
+import { updateFavicon } from '../utils/favicon';
 import {
   subscribeSiteConfig,
   subscribePortfolioConfig,
@@ -91,10 +94,19 @@ export const AdminPanel: React.FC<{ isNegative: boolean; onNavigateHome: () => v
   const [previewMedia, setPreviewMedia] = useState<PortfolioMedia | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  // Import HTML Modal & File Ref
+  const htmlFileInputRef = React.useRef<HTMLInputElement>(null);
+  const [showImportHtmlModal, setShowImportHtmlModal] = useState(false);
+  const [importHtmlText, setImportHtmlText] = useState('');
+
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);
   };
+
+  useEffect(() => {
+    updateFavicon(isNegative);
+  }, [isNegative]);
 
   useEffect(() => {
     const authStatus = sessionStorage.getItem('hma_admin_auth');
@@ -180,6 +192,43 @@ export const AdminPanel: React.FC<{ isNegative: boolean; onNavigateHome: () => v
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     showToast('Archivo HTML de animación exportado y descargado.');
+  };
+
+  const handleImportMotionHtmlFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const content = event.target?.result as string;
+      if (content && siteConfig) {
+        const parsed = parseMotionHtmlToConfig(content);
+        setSiteConfig({
+          ...siteConfig,
+          heroMotion: parsed
+        });
+        showToast('Animación HTML importada y aplicada al Hero.');
+        setShowImportHtmlModal(false);
+        setImportHtmlText('');
+      }
+    };
+    reader.readAsText(file);
+    // Reset file input value so same file can be re-uploaded if needed
+    e.target.value = '';
+  };
+
+  const handleImportMotionHtmlText = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!importHtmlText.trim() || !siteConfig) return;
+
+    const parsed = parseMotionHtmlToConfig(importHtmlText);
+    setSiteConfig({
+      ...siteConfig,
+      heroMotion: parsed
+    });
+    showToast('Animación HTML procesada y aplicada al Hero.');
+    setShowImportHtmlModal(false);
+    setImportHtmlText('');
   };
 
   const handleCopyMotionHtml = () => {
@@ -390,8 +439,8 @@ export const AdminPanel: React.FC<{ isNegative: boolean; onNavigateHome: () => v
           
           {/* Brand Title */}
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#3D80FD] flex items-center justify-center text-white font-bold text-sm shadow-sm">
-              H
+            <div className="p-1 rounded-lg transition-transform hover:scale-105">
+              <IsotipoMaestroVector width={36} height={36} isNegative={isNegative} />
             </div>
             <div>
               <h1 className="font-aeonik font-bold text-lg leading-tight">HMA INLUMENAI</h1>
@@ -939,7 +988,28 @@ export const AdminPanel: React.FC<{ isNegative: boolean; onNavigateHome: () => v
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    {/* Hidden input for HTML file selection */}
+                    <input
+                      type="file"
+                      ref={htmlFileInputRef}
+                      accept=".html,.htm"
+                      onChange={handleImportMotionHtmlFile}
+                      className="hidden"
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() => setShowImportHtmlModal(true)}
+                      className={`px-3.5 py-2 rounded-xl text-xs font-bold border transition-colors flex items-center gap-1.5 cursor-pointer ${
+                        isNegative ? 'border-white/15 bg-white/5 hover:bg-white/10' : 'border-black/15 bg-black/5 hover:bg-black/10'
+                      }`}
+                      title="Importar archivo HTML o código del Hero"
+                    >
+                      <Upload className="w-3.5 h-3.5 text-[#3D80FD]" />
+                      <span>Importar HTML</span>
+                    </button>
+
                     <button
                       type="button"
                       onClick={handleExportMotionHtml}
@@ -1846,6 +1916,102 @@ export const AdminPanel: React.FC<{ isNegative: boolean; onNavigateHome: () => v
                   className="max-h-[65vh] max-w-full rounded-xl object-contain shadow-2xl"
                 />
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: IMPORTAR HTML PARA HERO MOTION MATRIX */}
+      {showImportHtmlModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className={`w-full max-w-xl rounded-3xl border shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150 ${
+            isNegative ? 'bg-[#0A1208] border-white/15 text-[#FEFAE8]' : 'bg-white border-black/15 text-[#060C04]'
+          }`}>
+            {/* Modal Header */}
+            <div className="p-6 border-b border-inherit flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-[#3D80FD]/10 text-[#3D80FD]">
+                  <Upload className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-aeonik font-bold text-lg">Importar HTML para Hero Principal</h3>
+                  <p className="text-xs opacity-60">Sube un archivo .html o pega código HTML del Motion Matrix</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowImportHtmlModal(false)}
+                className="p-2 rounded-xl border border-inherit hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 space-y-6">
+              {/* Option 1: File Upload */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-wider opacity-60 block">
+                  Opción 1: Seleccionar archivo desde tu dispositivo
+                </label>
+                <div
+                  onClick={() => htmlFileInputRef.current?.click()}
+                  className={`p-6 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center gap-2 cursor-pointer transition-all ${
+                    isNegative
+                      ? 'border-white/20 hover:border-[#3D80FD] bg-white/5 hover:bg-white/10'
+                      : 'border-black/20 hover:border-[#3D80FD] bg-black/5 hover:bg-black/10'
+                  }`}
+                >
+                  <Upload className="w-8 h-8 text-[#3D80FD] opacity-80" />
+                  <span className="text-sm font-semibold text-center">Haz clic para buscar archivo .html / .htm</span>
+                  <span className="text-xs opacity-50">Soporta exportaciones directas de HMA Motion Matrix y variantes personalizadas</span>
+                </div>
+              </div>
+
+              {/* Divider */}
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-px bg-current opacity-10" />
+                <span className="text-[11px] font-mono opacity-50 uppercase tracking-wider">O pega el código</span>
+                <div className="flex-1 h-px bg-current opacity-10" />
+              </div>
+
+              {/* Option 2: Paste Raw HTML Code */}
+              <form onSubmit={handleImportMotionHtmlText} className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-wider opacity-60 block">
+                    Opción 2: Pegar código HTML
+                  </label>
+                  <textarea
+                    value={importHtmlText}
+                    onChange={(e) => setImportHtmlText(e.target.value)}
+                    placeholder="<!DOCTYPE html>&#10;<!-- Pega aquí el código HTML completo -->"
+                    rows={6}
+                    className={`w-full p-3.5 rounded-2xl text-xs font-mono outline-none border resize-none transition-colors ${
+                      isNegative
+                        ? 'bg-black/50 border-white/15 focus:border-[#3D80FD]'
+                        : 'bg-black/5 border-black/15 focus:border-[#3D80FD]'
+                    }`}
+                  />
+                </div>
+
+                <div className="flex items-center justify-end gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowImportHtmlModal(false)}
+                    className="px-4 py-2.5 rounded-xl text-xs font-bold border border-inherit hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={!importHtmlText.trim()}
+                    className="px-5 py-2.5 rounded-xl text-xs font-bold bg-[#3D80FD] text-white hover:bg-blue-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer flex items-center gap-1.5 shadow-md"
+                  >
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>Aplicar e Importar</span>
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>

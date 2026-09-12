@@ -139,6 +139,58 @@ export const HeroMotionBackground: React.FC<HeroMotionBackgroundProps> = ({
   );
 };
 
+export const parseMotionHtmlToConfig = (html: string): HeroMotionConfig => {
+  // 1. Check embedded config comment
+  const commentMatch = html.match(/<!--\s*HMA_MOTION_CONFIG:\s*(\{.*?\})\s*-->/s);
+  if (commentMatch && commentMatch[1]) {
+    try {
+      const parsed = JSON.parse(commentMatch[1]);
+      return {
+        enabled: parsed.enabled ?? true,
+        intensity: typeof parsed.intensity === 'number' ? parsed.intensity : 0.35,
+        speed: typeof parsed.speed === 'number' ? parsed.speed : 1.0,
+        showDeepOrb: parsed.showDeepOrb ?? true,
+        showLightOrb: parsed.showLightOrb ?? true,
+        showGridPattern: parsed.showGridPattern ?? true
+      };
+    } catch {
+      // fallback to manual heuristic extraction
+    }
+  }
+
+  // 2. Heuristic extraction from raw HTML
+  const hasDeepOrb = html.includes('3D80FD') || html.includes('Orbe Profundo');
+  const hasLightOrb = html.includes('052D63') || html.includes('Orbe Luz');
+  const hasGrid = html.includes('pat-grid') || html.includes('Grid Pattern') || html.includes('Cuadrícula');
+
+  let speed = 1.0;
+  const durationMatch = html.match(/--anim-duration:\s*([0-9.]+)s/);
+  if (durationMatch && durationMatch[1]) {
+    const durSec = parseFloat(durationMatch[1]);
+    if (durSec > 0) {
+      speed = Math.max(0.5, Math.min(2.5, Math.round((16 / durSec) * 10) / 10));
+    }
+  }
+
+  let intensity = 0.35;
+  const opacityMatch = html.match(/opacity:\s*([0-9.]+)/);
+  if (opacityMatch && opacityMatch[1]) {
+    const rawOpacity = parseFloat(opacityMatch[1]);
+    if (rawOpacity > 0 && rawOpacity <= 1) {
+      intensity = Math.max(0.1, Math.min(1.0, Math.round((rawOpacity / 0.5) * 100) / 100));
+    }
+  }
+
+  return {
+    enabled: true,
+    intensity,
+    speed,
+    showDeepOrb: hasDeepOrb,
+    showLightOrb: hasLightOrb,
+    showGridPattern: hasGrid
+  };
+};
+
 export const generateStandaloneMotionHtml = (config?: HeroMotionConfig): string => {
   const c = config || {
     enabled: true,
@@ -158,6 +210,7 @@ export const generateStandaloneMotionHtml = (config?: HeroMotionConfig): string 
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MOTION HMA MATRIX - Canvas Animado (v3.0)</title>
+  <!-- HMA_MOTION_CONFIG: ${JSON.stringify(c)} -->
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
