@@ -42,7 +42,10 @@ import {
   Archive,
   Clock,
   RefreshCw,
-  Flame
+  Flame,
+  Loader2,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { extractYouTubeId, getYouTubeThumbnail } from './MediaRenderer';
 import { generateStandaloneMotionHtml, parseMotionHtmlToConfig } from './HeroMotionBackground';
@@ -54,15 +57,25 @@ import {
   subscribeInquiries,
   updateInquiryStatusInFirestore,
   deleteInquiryFromFirestore,
+  getAdminPin,
+  updateAdminPin,
   ContactInquiry
 } from '../lib/firebase';
 
-export const AdminPanel: React.FC<{ isNegative: boolean; onNavigateHome: () => void }> = ({
+export const AdminPanel: React.FC<{ 
+  isNegative: boolean; 
+  themeMode?: 'luz' | 'profundo'; 
+  onToggleTheme?: () => void;
+  onNavigateHome: () => void 
+}> = ({
   isNegative,
+  themeMode = 'luz',
+  onToggleTheme,
   onNavigateHome
 }) => {
   const [pin, setPin] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [activeTab, setActiveTab] = useState<'config' | 'portfolio' | 'inquiries' | 'data'>('portfolio');
 
   // Data State
@@ -98,6 +111,11 @@ export const AdminPanel: React.FC<{ isNegative: boolean; onNavigateHome: () => v
   const htmlFileInputRef = React.useRef<HTMLInputElement>(null);
   const [showImportHtmlModal, setShowImportHtmlModal] = useState(false);
   const [importHtmlText, setImportHtmlText] = useState('');
+  const [importHtmlName, setImportHtmlName] = useState('');
+
+  // Security State
+  const [newPinInput, setNewPinInput] = useState('');
+  const [isUpdatingPin, setIsUpdatingPin] = useState(false);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -141,13 +159,22 @@ export const AdminPanel: React.FC<{ isNegative: boolean; onNavigateHome: () => v
     };
   }, []);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (pin === '951922') {
-      sessionStorage.setItem('hma_admin_auth', 'true');
-      setIsAuthenticated(true);
-    } else {
-      alert('PIN incorrecto. (Referencia: 951922)');
+    setIsAuthenticating(true);
+    try {
+      const validPin = await getAdminPin();
+      if (validPin && pin === validPin) {
+        sessionStorage.setItem('hma_admin_auth', 'true');
+        setIsAuthenticated(true);
+      } else {
+        alert('PIN incorrecto.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error verificando el PIN de seguridad.');
+    } finally {
+      setIsAuthenticating(false);
     }
   };
 
@@ -155,6 +182,22 @@ export const AdminPanel: React.FC<{ isNegative: boolean; onNavigateHome: () => v
     sessionStorage.removeItem('hma_admin_auth');
     setIsAuthenticated(false);
     onNavigateHome();
+  };
+
+  const handleChangePin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPinInput.trim()) return;
+    setIsUpdatingPin(true);
+    try {
+      await updateAdminPin(newPinInput.trim());
+      showToast('PIN de seguridad actualizado correctamente.');
+      setNewPinInput('');
+    } catch (err) {
+      console.error(err);
+      alert('Error al actualizar el PIN.');
+    } finally {
+      setIsUpdatingPin(false);
+    }
   };
 
   const handleSaveData = () => {
@@ -202,18 +245,23 @@ export const AdminPanel: React.FC<{ isNegative: boolean; onNavigateHome: () => v
     reader.onload = (event) => {
       const content = event.target?.result as string;
       if (content && siteConfig) {
-        const parsed = parseMotionHtmlToConfig(content);
+        const entry = {
+          id: 'html_' + Date.now().toString(36),
+          name: importHtmlName.trim() || file.name.replace('.html', ''),
+          html: content,
+          timestamp: Date.now()
+        };
         setSiteConfig({
           ...siteConfig,
-          heroMotion: parsed
+          customHtmlHistory: [entry, ...(siteConfig.customHtmlHistory || [])]
         });
-        showToast('Animación HTML importada y aplicada al Hero.');
+        showToast('Archivo HTML guardado en el historial exitosamente.');
         setShowImportHtmlModal(false);
         setImportHtmlText('');
+        setImportHtmlName('');
       }
     };
     reader.readAsText(file);
-    // Reset file input value so same file can be re-uploaded if needed
     e.target.value = '';
   };
 
@@ -221,14 +269,22 @@ export const AdminPanel: React.FC<{ isNegative: boolean; onNavigateHome: () => v
     e.preventDefault();
     if (!importHtmlText.trim() || !siteConfig) return;
 
-    const parsed = parseMotionHtmlToConfig(importHtmlText);
+    const entry = {
+      id: 'html_' + Date.now().toString(36),
+      name: importHtmlName.trim() || `Variante ${new Date().toLocaleDateString()}`,
+      html: importHtmlText,
+      timestamp: Date.now()
+    };
+    
     setSiteConfig({
       ...siteConfig,
-      heroMotion: parsed
+      customHtmlHistory: [entry, ...(siteConfig.customHtmlHistory || [])]
     });
-    showToast('Animación HTML procesada y aplicada al Hero.');
+    
+    showToast('Código HTML guardado en el historial exitosamente.');
     setShowImportHtmlModal(false);
     setImportHtmlText('');
+    setImportHtmlName('');
   };
 
   const handleCopyMotionHtml = () => {
@@ -370,8 +426,24 @@ export const AdminPanel: React.FC<{ isNegative: boolean; onNavigateHome: () => v
 
   if (!isAuthenticated) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen px-4 bg-[#060C04] text-[#FEFAE8]">
-        <div className="p-8 rounded-3xl max-w-md w-full shadow-2xl bg-white/5 border border-white/10 text-center space-y-6">
+      <div className={`flex flex-col items-center justify-center min-h-screen px-4 transition-colors ${isNegative ? 'bg-[#060C04] text-[#FEFAE8]' : 'bg-[#FEFAE8] text-[#060C04]'}`}>
+        
+        {/* Floating Theme Toggle for PIN Screen */}
+        {onToggleTheme && (
+          <div className="absolute top-6 right-6 z-50">
+            <button
+              onClick={onToggleTheme}
+              className={`p-3 rounded-full shadow-lg border transition-all cursor-pointer ${
+                isNegative ? 'bg-[#FEFAE8] text-[#060C04] border-[#FEFAE8]/20 hover:scale-105' : 'bg-[#060C04] text-[#FEFAE8] border-[#060C04]/20 hover:scale-105'
+              }`}
+              aria-label="Alternar modo oscuro"
+            >
+              {isNegative ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
+          </div>
+        )}
+
+        <div className={`p-8 rounded-3xl max-w-md w-full shadow-2xl border text-center space-y-6 ${isNegative ? 'bg-white/5 border-white/10' : 'bg-black/5 border-black/10'}`}>
           <div className="space-y-2">
             <span className="font-mono text-xs text-[#3D80FD] uppercase tracking-widest">HMA INLUMENAI</span>
             <h2 className="text-3xl font-aeonik font-bold">Panel de Administración</h2>
@@ -384,14 +456,20 @@ export const AdminPanel: React.FC<{ isNegative: boolean; onNavigateHome: () => v
               placeholder="••••••"
               value={pin}
               onChange={(e) => setPin(e.target.value)}
-              className="px-4 py-3.5 rounded-2xl text-center tracking-[0.5em] font-mono text-xl outline-none bg-black/60 text-white border border-white/10 focus:border-[#3D80FD] transition-colors"
+              className={`px-4 py-3.5 rounded-2xl text-center tracking-[0.5em] font-mono text-xl outline-none border transition-colors ${
+                isNegative 
+                  ? 'bg-black/60 text-white border-white/10 focus:border-[#3D80FD]' 
+                  : 'bg-white text-black border-black/10 focus:border-[#3D80FD]'
+              }`}
               autoFocus
             />
             <button
               type="submit"
-              className="py-3.5 rounded-2xl font-general font-bold uppercase tracking-wider text-xs bg-[#3D80FD] text-white hover:bg-blue-600 transition-colors shadow-lg cursor-pointer"
+              disabled={isAuthenticating || !pin.trim()}
+              className="py-3.5 rounded-2xl font-general font-bold uppercase tracking-wider text-xs bg-[#3D80FD] text-white hover:bg-blue-600 transition-colors shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              Acceder al Sistema
+              {isAuthenticating && <Loader2 className="w-4 h-4 animate-spin" />}
+              <span>{isAuthenticating ? 'Verificando...' : 'Acceder al Sistema'}</span>
             </button>
           </form>
 
@@ -508,6 +586,20 @@ export const AdminPanel: React.FC<{ isNegative: boolean; onNavigateHome: () => v
 
           {/* Right Action Controls */}
           <div className="flex items-center gap-2 sm:gap-3">
+            
+            {/* Theme Toggle Button */}
+            {onToggleTheme && (
+              <button
+                onClick={onToggleTheme}
+                className={`p-2.5 rounded-xl border transition-colors cursor-pointer ${
+                  isNegative ? 'bg-white/5 border-white/15 hover:bg-white/10' : 'bg-black/5 border-black/15 hover:bg-black/10'
+                }`}
+                title="Alternar modo de color"
+              >
+                {isNegative ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              </button>
+            )}
+
             <div className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-mono font-medium border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
               <Flame className="w-3.5 h-3.5 text-amber-500" />
               <span>Firestore En Vivo</span>
@@ -954,7 +1046,7 @@ export const AdminPanel: React.FC<{ isNegative: boolean; onNavigateHome: () => v
         )}
 
         {/* TAB 2: CONFIGURACIÓN GENERAL */}
-        {activeTab === 'config' && siteConfig && (
+        {activeTab === 'config' && siteConfig && (<>
           <div className={`p-8 rounded-3xl shadow-xl space-y-8 ${
             isNegative ? 'bg-white/5 border border-white/10' : 'bg-white border border-black/10'
           }`}>
@@ -1218,6 +1310,119 @@ export const AdminPanel: React.FC<{ isNegative: boolean; onNavigateHome: () => v
                     </div>
                   </div>
                 )}
+              </div>
+
+              {/* GESTOR DE VARIANTES HTML */}
+              <div className={`p-6 sm:p-7 rounded-3xl border space-y-6 ${
+                isNegative ? 'bg-white/5 border-white/10' : 'bg-white border-black/10'
+              }`}>
+                <div className="border-b border-inherit pb-4 flex items-center justify-between">
+                  <div>
+                    <h3 className="font-aeonik font-bold text-lg">Asignación de HTML Personalizado</h3>
+                    <p className="text-xs opacity-60">
+                      Asigna un código HTML importado para reemplazar el fondo o el isotipo maestro.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Selector Fondo */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wider opacity-60 block">
+                      Fondo del Hero
+                    </label>
+                    <select
+                      value={siteConfig.activeBackgroundHtmlId || ''}
+                      onChange={(e) => setSiteConfig({...siteConfig, activeBackgroundHtmlId: e.target.value || null})}
+                      className={`w-full p-3 rounded-xl text-sm outline-none border cursor-pointer transition-colors ${
+                        isNegative ? 'bg-black/50 border-white/10 text-white' : 'bg-black/5 border-black/10 text-black'
+                      }`}
+                    >
+                      <option value="">Matrix por defecto (Natual)</option>
+                      {siteConfig.customHtmlHistory?.map(html => (
+                        <option key={html.id} value={html.id}>{html.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Selector Foreground */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wider opacity-60 block">
+                      Visual Frontal (Reemplaza Isotipo)
+                    </label>
+                    <select
+                      value={siteConfig.activeForegroundHtmlId || ''}
+                      onChange={(e) => setSiteConfig({...siteConfig, activeForegroundHtmlId: e.target.value || null})}
+                      className={`w-full p-3 rounded-xl text-sm outline-none border cursor-pointer transition-colors ${
+                        isNegative ? 'bg-black/50 border-white/10 text-white' : 'bg-black/5 border-black/10 text-black'
+                      }`}
+                    >
+                      <option value="">Isotipo Maestro por defecto</option>
+                      {siteConfig.customHtmlHistory?.map(html => (
+                        <option key={html.id} value={html.id}>{html.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                
+                {/* Historial Visual */}
+                {siteConfig.customHtmlHistory && siteConfig.customHtmlHistory.length > 0 && (
+                  <div className="pt-4 border-t border-inherit space-y-3">
+                    <label className="text-xs font-bold uppercase tracking-wider opacity-60 block">
+                      Historial de HTML Importados
+                    </label>
+                    <div className="space-y-2">
+                      {siteConfig.customHtmlHistory.map(entry => (
+                        <div key={entry.id} className={`flex items-center justify-between p-3 rounded-xl border ${isNegative ? 'bg-black/20 border-white/10' : 'bg-white border-black/5'}`}>
+                          <div className="flex flex-col">
+                            <span className="font-bold text-sm">{entry.name}</span>
+                            <span className="text-[10px] opacity-50">{new Date(entry.timestamp).toLocaleString()}</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (confirm('¿Eliminar este HTML del historial?')) {
+                                setSiteConfig({
+                                  ...siteConfig,
+                                  customHtmlHistory: siteConfig.customHtmlHistory?.filter(h => h.id !== entry.id),
+                                  activeBackgroundHtmlId: siteConfig.activeBackgroundHtmlId === entry.id ? null : siteConfig.activeBackgroundHtmlId,
+                                  activeForegroundHtmlId: siteConfig.activeForegroundHtmlId === entry.id ? null : siteConfig.activeForegroundHtmlId,
+                                });
+                              }
+                            }}
+                            className="p-1.5 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
+                            title="Eliminar historial"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Formularios y Botones de Solicitud (Kill Switch) */}
+              <div className={`p-6 sm:p-7 rounded-3xl border space-y-4 ${
+                isNegative ? 'bg-white/5 border-white/10' : 'bg-white border-black/10'
+              }`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-aeonik font-bold text-lg">Recepción de Solicitudes (Botones y Formularios)</h3>
+                    <p className="text-xs opacity-60 mt-1">
+                      Si desactivas esta opción, se ocultarán todos los botones de "Iniciar Consulta", "Enviar Solicitud" y el formulario de contacto de toda la web. Útil para pausar la recepción de nuevos clientes.
+                    </p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer ml-4 shrink-0">
+                    <input 
+                      type="checkbox" 
+                      className="sr-only peer"
+                      checked={siteConfig.enableInquiries !== false}
+                      onChange={e => setSiteConfig({...siteConfig, enableInquiries: e.target.checked})}
+                    />
+                    <div className="w-14 h-7 bg-gray-300 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-[#3D80FD]"></div>
+                  </label>
+                </div>
               </div>
 
               {/* Visibilidad de Secciones */}
@@ -1613,7 +1818,39 @@ export const AdminPanel: React.FC<{ isNegative: boolean; onNavigateHome: () => v
               </div>
             </form>
           </div>
-        )}
+          
+          {/* SEGURIDAD / CAMBIAR PIN */}
+          <div className={`p-8 rounded-3xl shadow-xl space-y-6 ${
+            isNegative ? 'bg-white/5 border border-white/10' : 'bg-white border border-black/10'
+          }`}>
+            <div className="flex items-center justify-between border-b border-inherit pb-4">
+              <div>
+                <h2 className="text-xl font-aeonik font-bold">Seguridad del Panel</h2>
+                <p className="text-xs opacity-60">Cambiar el PIN de acceso administrativo.</p>
+              </div>
+            </div>
+            <form onSubmit={handleChangePin} className="space-y-4 max-w-sm">
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold opacity-60">Nuevo PIN de Seguridad</label>
+                <input
+                  type="password"
+                  value={newPinInput}
+                  onChange={e => setNewPinInput(e.target.value)}
+                  placeholder="Ej: 123456"
+                  className={`px-4 py-3 rounded-xl text-center tracking-widest font-mono text-lg outline-none border ${isNegative ? 'bg-black/50 border-white/10 focus:border-[#3D80FD]' : 'bg-white border-black/10 focus:border-[#3D80FD]'}`}
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={!newPinInput.trim() || isUpdatingPin}
+                className="w-full py-3 rounded-xl font-bold uppercase tracking-wider text-xs bg-[#3D80FD] text-white hover:bg-blue-600 transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isUpdatingPin && <Loader2 className="w-4 h-4 animate-spin" />}
+                <span>{isUpdatingPin ? 'Actualizando...' : 'Actualizar PIN'}</span>
+              </button>
+            </form>
+          </div>
+        </>)}
 
         {/* TAB 3: SOLICITUDES / INQUIRIES (FIREBASE FIRESTORE) */}
         {activeTab === 'inquiries' && (
@@ -1949,6 +2186,25 @@ export const AdminPanel: React.FC<{ isNegative: boolean; onNavigateHome: () => v
 
             {/* Modal Content */}
             <div className="p-6 space-y-6">
+              
+              {/* Variant Name */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-wider opacity-60 block">
+                  Nombre de la Variante (Opcional)
+                </label>
+                <input
+                  type="text"
+                  value={importHtmlName}
+                  onChange={(e) => setImportHtmlName(e.target.value)}
+                  placeholder="Ej: Motion Matrix Azul"
+                  className={`w-full p-3.5 rounded-2xl text-sm outline-none border transition-colors ${
+                    isNegative
+                      ? 'bg-black/50 border-white/15 focus:border-[#3D80FD]'
+                      : 'bg-black/5 border-black/15 focus:border-[#3D80FD]'
+                  }`}
+                />
+              </div>
+
               {/* Option 1: File Upload */}
               <div className="space-y-2">
                 <label className="text-xs font-bold uppercase tracking-wider opacity-60 block">

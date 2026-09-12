@@ -1,4 +1,11 @@
 
+export interface CustomHtmlEntry {
+  id: string;
+  name: string;
+  html: string;
+  timestamp: number;
+}
+
 export interface HeroMotionConfig {
   enabled: boolean;
   intensity: number; // 0.1 to 1.0
@@ -35,6 +42,11 @@ export interface SiteConfig {
   heroMetric2Label: string;
   heroMetric3Value: string;
   heroMetric3Label: string;
+
+  // Hero Custom HTML Integrations
+  customHtmlHistory?: CustomHtmlEntry[];
+  activeBackgroundHtmlId?: string | null;
+  activeForegroundHtmlId?: string | null;
 
   // Hero Background Motion Matrix
   heroMotion: HeroMotionConfig;
@@ -90,6 +102,9 @@ export interface SiteConfig {
   showDifferentiators: boolean;
   showTimeline: boolean;
   showContact: boolean;
+
+  // Kill Switch for Contact Forms
+  enableInquiries: boolean;
 }
 
 export const getDefaultConfig = (): SiteConfig => ({
@@ -115,6 +130,10 @@ export const getDefaultConfig = (): SiteConfig => ({
   heroMetric2Label: 'Servicios autónomos',
   heroMetric3Value: '13',
   heroMetric3Label: 'Formas / 1 Eje Central',
+
+  customHtmlHistory: [],
+  activeBackgroundHtmlId: null,
+  activeForegroundHtmlId: null,
 
   heroMotion: {
     enabled: true,
@@ -169,7 +188,8 @@ export const getDefaultConfig = (): SiteConfig => ({
   showServices: true,
   showDifferentiators: true,
   showTimeline: true,
-  showContact: true
+  showContact: true,
+  enableInquiries: true
 });
 
 export const getSiteConfig = (): SiteConfig => {

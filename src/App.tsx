@@ -25,10 +25,21 @@ export default function App() {
     return { type: 'home' };
   });
   
-  const [themeMode, setThemeMode] = useState<ThemeMode>('luz');
+  const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('hma_theme_mode');
+      if (saved === 'luz' || saved === 'profundo') return saved as ThemeMode;
+    }
+    return 'luz';
+  });
+  
   const [contactServicePreselect, setContactServicePreselect] = useState<string>('');
   
   const isNegative = themeMode === 'profundo';
+
+  useEffect(() => {
+    localStorage.setItem('hma_theme_mode', themeMode);
+  }, [themeMode]);
 
   useEffect(() => {
     setConfig(getSiteConfig());
@@ -82,7 +93,14 @@ export default function App() {
       : null;
 
   if (activePage.type === 'admin') {
-    return <AdminPanel isNegative={isNegative} onNavigateHome={() => handleNavigate({ type: 'home' })} />;
+    return (
+      <AdminPanel 
+        isNegative={isNegative} 
+        themeMode={themeMode}
+        onToggleTheme={toggleTheme}
+        onNavigateHome={() => handleNavigate({ type: 'home' })} 
+      />
+    );
   }
 
   return (

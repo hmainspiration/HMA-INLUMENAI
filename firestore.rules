@@ -18,5 +18,10 @@ service cloud.firestore {
       allow create: if true;
       allow read, update, delete: if true;
     }
+
+    // Seguridad y Admin
+    match /admin/{docId} {
+      allow read, write: if true;
+    }
   }
 }

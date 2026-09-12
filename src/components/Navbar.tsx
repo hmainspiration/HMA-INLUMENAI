@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ActivePage, ThemeMode } from '../types';
 import { BrandWordmark, IsotipoMaestroVector } from './BrandLogos';
 import { Menu, X, Sun, Moon, ArrowRight } from 'lucide-react';
+import { getSiteConfig, SiteConfig } from '../utils/store';
 
 interface NavbarProps {
   activePage: ActivePage;
@@ -17,14 +18,21 @@ export const Navbar: React.FC<NavbarProps> = ({
   onToggleTheme
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [config, setConfig] = useState<SiteConfig | null>(null);
   const isNegative = themeMode === 'profundo';
+
+  useEffect(() => {
+    setConfig(getSiteConfig());
+  }, []);
+
+  const showInquiries = config?.enableInquiries !== false;
 
   const navItems = [
     { label: 'Inicio', page: { type: 'home' } as ActivePage },
     { label: '12 Servicios', page: { type: 'home' } as ActivePage, anchor: '#servicios' },
     { label: 'Ecosistema', page: { type: 'home' } as ActivePage, anchor: '#ecosistema' },
     { label: 'Trayectoria (10 Años)', page: { type: 'trajectory' } as ActivePage },
-    { label: 'Contacto', page: { type: 'contact' } as ActivePage }
+    ...(showInquiries ? [{ label: 'Contacto', page: { type: 'contact' } as ActivePage }] : [])
   ];
 
   const handleLinkClick = (item: { label: string; page: ActivePage; anchor?: string }) => {
@@ -100,13 +108,15 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
 
           {/* Primary CTA */}
-          <button
-            onClick={() => onNavigate({ type: 'contact' })}
-            className="btn-primary flex items-center gap-2 bg-[#3D80FD] text-white hover:bg-[#2D60C1] cursor-pointer shadow-sm"
-          >
-            <span>Iniciar Consulta</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
+          {showInquiries && (
+            <button
+              onClick={() => onNavigate({ type: 'contact' })}
+              className="btn-primary flex items-center gap-2 bg-[#3D80FD] text-white hover:bg-[#2D60C1] cursor-pointer shadow-sm"
+            >
+              <span>Iniciar Consulta</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          )}
         </div>
 
         {/* Mobile Hamburger Toggle */}

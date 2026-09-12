@@ -22,16 +22,35 @@ export const Hero: React.FC<HeroProps> = ({
     setConfig(getSiteConfig());
   }, []);
 
+  const activeBg = config?.activeBackgroundHtmlId 
+    ? config.customHtmlHistory?.find(h => h.id === config.activeBackgroundHtmlId) 
+    : null;
+    
+  const activeFg = config?.activeForegroundHtmlId 
+    ? config.customHtmlHistory?.find(h => h.id === config.activeForegroundHtmlId) 
+    : null;
+
   return (
-    <section className="relative overflow-hidden pt-12 pb-20 lg:pt-16 lg:pb-28">
-      {/* Background Animated Motion Matrix */}
-      <HeroMotionBackground
-        isNegative={isNegative}
-        config={config?.heroMotion}
-      />
+    <section className="relative overflow-hidden pt-12 pb-20 lg:pt-16 lg:pb-28 min-h-[90vh] flex items-center">
+      {/* Background */}
+      {activeBg ? (
+        <div className="absolute inset-0 z-0 pointer-events-none">
+          <iframe 
+            srcDoc={activeBg.html} 
+            title="Custom Background" 
+            className="w-full h-full border-0 pointer-events-auto"
+            sandbox="allow-scripts allow-same-origin"
+          />
+        </div>
+      ) : (
+        <HeroMotionBackground
+          isNegative={isNegative}
+          config={config?.heroMotion}
+        />
+      )}
 
       {/* Structural backdrop subtle guides */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
           {/* Left Column: Typography & Ecosystem Proposition */}
           <div className="lg:col-span-7 space-y-6 text-left">
@@ -104,29 +123,40 @@ export const Hero: React.FC<HeroProps> = ({
             </div>
           </div>
 
-          {/* Right Column: Animated Master Logo (13 Shapes) - Clean without box/card */}
+          {/* Right Column: Animated Master Logo (13 Shapes) OR Custom HTML */}
           <div className="lg:col-span-5 flex flex-col items-center justify-center">
-            <div className="w-full max-w-[460px] flex flex-col items-center justify-center">
-              <div className="w-full aspect-square flex items-center justify-center">
-                <AnimatedIsotipo
-                  shapes={MASTER_SHAPES}
-                  serviceId="master-home"
-                  isServiceView={false}
-                  isNegative={isNegative}
-                  allowReplay={true}
+            {activeFg ? (
+              <div className="w-full aspect-square relative rounded-3xl overflow-hidden shadow-2xl bg-black/5 dark:bg-white/5 border border-[#3D80FD]/20">
+                <iframe 
+                  srcDoc={activeFg.html} 
+                  title="Custom Foreground" 
+                  className="w-full h-full border-0"
+                  sandbox="allow-scripts allow-same-origin"
                 />
               </div>
+            ) : (
+              <div className="w-full max-w-[460px] flex flex-col items-center justify-center">
+                <div className="w-full aspect-square flex items-center justify-center">
+                  <AnimatedIsotipo
+                    shapes={MASTER_SHAPES}
+                    serviceId="master-home"
+                    isServiceView={false}
+                    isNegative={isNegative}
+                    allowReplay={true}
+                  />
+                </div>
 
-              {/* Sub-label explaining the geometry */}
-              <div className="text-center mt-3">
-                <p className="font-general text-xs tracking-wider uppercase font-semibold text-[#3D80FD]">
-                  Isotipo Maestro
-                </p>
-                <p className={`font-general text-[11px] mt-0.5 ${isNegative ? 'text-[#FEFAE8]/60' : 'text-[#060C04]/60'}`}>
-                  12 Rectángulos Redondeados + 1 Círculo Central Constante
-                </p>
+                {/* Sub-label explaining the geometry */}
+                <div className="text-center mt-3">
+                  <p className="font-general text-xs tracking-wider uppercase font-semibold text-[#3D80FD]">
+                    Isotipo Maestro
+                  </p>
+                  <p className={`font-general text-[11px] mt-0.5 ${isNegative ? 'text-[#FEFAE8]/60' : 'text-[#060C04]/60'}`}>
+                    12 Rectángulos Redondeados + 1 Círculo Central Constante
+                  </p>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>

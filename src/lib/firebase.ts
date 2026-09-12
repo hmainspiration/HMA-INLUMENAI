@@ -209,3 +209,31 @@ export const deleteInquiryFromFirestore = async (inquiryId: string): Promise<voi
     throw error;
   }
 };
+
+// --- ADMIN SECURITY ---
+export const getAdminPin = async (): Promise<string | null> => {
+  try {
+    const docRef = doc(db, 'admin', 'security');
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      return docSnap.data().pin as string;
+    }
+    // Si no existe, creamos uno por defecto.
+    const defaultPin = '951922';
+    await setDoc(docRef, { pin: defaultPin });
+    return defaultPin;
+  } catch (error) {
+    console.error('Error fetching admin PIN:', error);
+    return null;
+  }
+};
+
+export const updateAdminPin = async (newPin: string): Promise<void> => {
+  try {
+    const docRef = doc(db, 'admin', 'security');
+    await setDoc(docRef, { pin: newPin }, { merge: true });
+  } catch (error) {
+    console.error('Error updating admin PIN:', error);
+    throw error;
+  }
+};

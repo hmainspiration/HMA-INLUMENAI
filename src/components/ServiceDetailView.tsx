@@ -1,12 +1,10 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { ServiceItem } from '../types';
 import { AnimatedIsotipo, AnimatedIsotipoRef } from './AnimatedIsotipo';
 import { SERVICES } from '../data/brandData';
-import { getPortfolioConfig } from '../utils/store';
+import { getPortfolioConfig, getSiteConfig, SiteConfig, PortfolioMedia } from '../utils/store';
 import { getPortfolioFiles } from '../utils/portfolioRegistry';
 import { MediaGallery } from './MediaGallery';
-import { PortfolioMedia } from '../utils/store';
-import { useEffect } from 'react';
 import {
   ArrowLeft,
   CheckCircle2,
@@ -35,11 +33,13 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({
   const isotipoRef = useRef<AnimatedIsotipoRef>(null);
   const [hasTransformedToMaster, setHasTransformedToMaster] = useState(false);
   const [isTransforming, setIsTransforming] = useState(false);
+  const [config, setConfig] = useState<SiteConfig | null>(null);
 
   const [portfolioData, setPortfolioData] = useState<any>(null);
   const [autoFiles, setAutoFiles] = useState<string[]>([]);
 
   useEffect(() => {
+    setConfig(getSiteConfig());
     const pConfig = getPortfolioConfig();
     setPortfolioData(pConfig[service.id] || null);
     
@@ -369,14 +369,16 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({
                   : 'Volver al Ecosistema HMA (Transición en Vivo)'}
               </span>
             </button>
-            <button
-              onClick={() => onContactService(service.name)}
-              className={`btn-primary btn-lg border cursor-pointer ${
-                isNegative ? 'border-[#FEFAE8]/20 hover:bg-[#FEFAE8]/10' : 'border-[#060C04]/20 hover:bg-[#060C04]/5'
-              }`}
-            >
-              <span>Consultar Tarifas & Alcance</span>
-            </button>
+            {config?.enableInquiries !== false && (
+              <button
+                onClick={() => onContactService(service.name)}
+                className={`btn-primary btn-lg border cursor-pointer ${
+                  isNegative ? 'border-[#FEFAE8]/20 hover:bg-[#FEFAE8]/10' : 'border-[#060C04]/20 hover:bg-[#060C04]/5'
+                }`}
+              >
+                <span>Consultar Tarifas & Alcance</span>
+              </button>
+            )}
           </div>
         </div>
 

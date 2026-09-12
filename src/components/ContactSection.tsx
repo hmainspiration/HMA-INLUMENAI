@@ -192,7 +192,19 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
             <div className={`p-8 sm:p-10 rounded-2xl border ${
               isNegative ? 'bg-[#060C04] border-[#FEFAE8]/10' : 'bg-white border-[#060C04]/8 shadow-sm'
             }`}>
-              {submitted ? (
+              {config.enableInquiries === false ? (
+                <div className="py-12 text-center space-y-4">
+                  <div className="w-16 h-16 rounded-full bg-orange-500/20 text-orange-500 flex items-center justify-center mx-auto">
+                    <UtilitarianIcon name="email" size={32} color="currentColor" />
+                  </div>
+                  <h3 className="font-dosis text-2xl font-bold">
+                    Recepción de Solicitudes Pausada
+                  </h3>
+                  <p className={`font-general ${isNegative ? 'text-[#FEFAE8]/80' : 'text-[#060C04]/80'}`}>
+                    Temporalmente no estamos recibiendo solicitudes mediante el formulario. Por favor, comunícate con nosotros directamente a través de nuestro correo o teléfono.
+                  </p>
+                </div>
+              ) : submitted ? (
                 <div className="py-12 text-center space-y-4">
                   <div className="w-16 h-16 rounded-full bg-[#75C962]/20 text-[#75C962] flex items-center justify-center mx-auto">
                     <CheckCircle className="w-8 h-8" />
