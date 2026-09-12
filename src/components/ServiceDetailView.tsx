@@ -114,18 +114,13 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({
   };
 
 
-  // Trigger Section 5.3 transition (o mostrar HTML personalizado de Marca Matrix)
+  // Trigger transition (Servicio -> Maestro -> Retorno a Servicio)
   const handleTriggerMasterTransition = () => {
     setIsTransforming(true);
-    if (useCustomMatrixHtml) {
-      setTimeout(() => {
-        setHasTransformedToMaster(true);
-        setIsTransforming(false);
-      }, 250);
-      return;
-    }
     if (isotipoRef.current) {
       isotipoRef.current.transitionToMaster();
+    } else {
+      setIsTransforming(false);
     }
   };
 
@@ -279,73 +274,36 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({
                     ? isNegative
                       ? 'p-8 rounded-3xl border bg-[#060C04]/80 border-[#FEFAE8]/15 shadow-2xl'
                       : 'p-8 rounded-3xl border bg-white border-[#060C04]/10 shadow-lg'
-                    : 'p-2'
+                    : 'p-0 bg-transparent'
                 }`}
               >
                 <div className="w-full aspect-square flex items-center justify-center">
-                  {hasTransformedToMaster && useCustomMatrixHtml ? (
-                    <div className="w-full h-full relative rounded-2xl overflow-hidden flex items-center justify-center">
-                      <iframe
-                        srcDoc={formatMatrixHtmlDoc(config!.customMatrixHtml!, isNegative)}
-                        title={`HTML Integración Marca Matrix - ${service.name}`}
-                        className="w-full h-full border-0 pointer-events-auto bg-transparent"
-                        sandbox="allow-scripts allow-same-origin"
-                      />
-                    </div>
-                  ) : (
-                    <AnimatedIsotipo
-                      ref={isotipoRef}
-                      shapes={service.shapes}
-                      serviceId={`service-${service.id}`}
-                      isServiceView={true}
-                      isNegative={isNegative}
-                      allowReplay={true}
-                      onTransitionComplete={() => {
-                        setIsTransforming(false);
-                        setHasTransformedToMaster(true);
-                      }}
-                    />
-                  )}
+                  <AnimatedIsotipo
+                    ref={isotipoRef}
+                    shapes={service.shapes}
+                    serviceId={`service-${service.id}`}
+                    isServiceView={true}
+                    isNegative={isNegative}
+                    allowReplay={true}
+                    onTransitionComplete={() => {
+                      setIsTransforming(false);
+                      setHasTransformedToMaster(true);
+                    }}
+                  />
                 </div>
 
                 {/* Interactive Status Indicator */}
                 <div className="mt-3 text-center space-y-1">
-                  <p className="font-general text-xs font-semibold tracking-wide uppercase" style={{ color: hasTransformedToMaster ? '#3D80FD' : service.luzColor }}>
-                    {hasTransformedToMaster
-                      ? (useCustomMatrixHtml && config?.customMatrixHtmlName
-                          ? config.customMatrixHtmlName
-                          : 'Isotipo Maestro HMA (Marca Matrix)')
+                  <p className="font-general text-xs font-semibold tracking-wide uppercase" style={{ color: isTransforming ? '#3D80FD' : service.luzColor }}>
+                    {isTransforming
+                      ? 'Transición Activa: Servicio ➔ Maestro ➔ Servicio'
                       : `Isotipo ${service.name} (Consolidado)`}
                   </p>
                   <p className="font-general text-[11px] opacity-60">
-                    {hasTransformedToMaster
-                      ? (useCustomMatrixHtml
-                          ? 'Renderizado desde HTML personalizado guardado en Firestore'
-                          : 'Morfología maestra unificada en #3D80FD / #2D60C1')
+                    {isTransforming
+                      ? 'Metamorfosis GSAP entre las 13 formas geométricas oficiales'
                       : `Subpaleta cerrada: ${service.luzColor} / ${service.profundoColor}`}
                   </p>
-
-                  {hasTransformedToMaster && (
-                    <div className="flex items-center justify-center gap-3 pt-2">
-                      <button
-                        onClick={handleTriggerMasterTransition}
-                        disabled={isTransforming}
-                        className="inline-flex items-center gap-1 text-[11px] font-general font-medium text-[#3D80FD] hover:underline cursor-pointer"
-                      >
-                        <Sparkles className="w-3 h-3" />
-                        <span>Recargar Marca Matrix</span>
-                      </button>
-                      <span className="text-[10px] opacity-40">•</span>
-                      <button
-                        onClick={handleResetServiceIsotipo}
-                        disabled={isTransforming}
-                        className="inline-flex items-center gap-1 text-[11px] font-general font-medium text-[#3D80FD] hover:underline cursor-pointer"
-                      >
-                        <RotateCcw className="w-3 h-3" />
-                        <span>Volver al isotipo de {service.name}</span>
-                      </button>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>

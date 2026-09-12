@@ -76,12 +76,26 @@ export const AnimatedIsotipo = React.forwardRef<AnimatedIsotipoRef, AnimatedIsot
     return map;
   };
 
+  // Reorganizar el orden de capas (Z-Index) en el DOM SVG para evitar solapamientos incorrectos
+  const reorderDomLayering = (orderedShapes: ShapeDefinition[]) => {
+    const layer = svgRef.current?.querySelector(`#shapes-layer-${serviceId}`);
+    if (layer) {
+      orderedShapes.forEach(shape => {
+        const el = layer.querySelector(`#g-${serviceId}-${shape.id}`);
+        if (el) {
+          layer.appendChild(el);
+        }
+      });
+    }
+  };
+
   // Play entry animation (Nacimiento -> Reloj -> Metamorfosis -> Consolidado)
   const playEntryAnimation = (targetShapes: ShapeDefinition[], skipAnim = false) => {
     if (timelineRef.current) {
       timelineRef.current.kill();
     }
 
+    reorderDomLayering(targetShapes);
     const clockPos = calculateClockPositions(targetShapes);
     const sortedShapes = [...targetShapes].sort((a, b) => a.id.localeCompare(b.id));
 
@@ -206,17 +220,19 @@ export const AnimatedIsotipo = React.forwardRef<AnimatedIsotipoRef, AnimatedIsot
     });
   };
 
-  // Section 5.3: Transición Servicio -> Maestro
+  // Transición Completa de 3 Actos: Servicio -> Maestro -> Retorno a Servicio
   const transitionToMaster = () => {
     if (timelineRef.current) {
       timelineRef.current.kill();
     }
 
     const officialMasterShapes = getMasterShapes(isNegative);
+    const serviceClockPos = calculateClockPositions(shapes);
     const masterClockPos = calculateClockPositions(officialMasterShapes);
-    const sortedShapes = [...shapes].sort((a, b) => a.id.localeCompare(b.id));
+    const sortedServiceShapes = [...shapes].sort((a, b) => a.id.localeCompare(b.id));
+    const sortedMasterShapes = [...officialMasterShapes].sort((a, b) => a.id.localeCompare(b.id));
 
-    // Si ya estábamos en maestro o en estado consolidado, primero restauramos a la geometría de servicio para ver la transición completa
+    // Garantizar que iniciamos firmemente en la geometría consolidada del servicio
     shapes.forEach(shape => {
       gsap.set(`#g-${serviceId}-${shape.id}`, {
         x: shape.x,
@@ -238,29 +254,34 @@ export const AnimatedIsotipo = React.forwardRef<AnimatedIsotipoRef, AnimatedIsot
       });
     });
 
+    setIsConsolidated(false);
+    setCurrentDisplayMode('master');
+
     const tl = gsap.timeline({
       onComplete: () => {
-        setCurrentDisplayMode('master');
+        setCurrentDisplayMode('service');
         setIsConsolidated(true);
         if (onTransitionComplete) onTransitionComplete();
       }
     });
     timelineRef.current = tl;
 
-    // 1. Retorno al reloj desde la posición del servicio
-    tl.addLabel('return_clock');
-    sortedShapes.forEach(shape => {
-      const target = masterClockPos[shape.id] || { x: TARGET_CENTER, y: TARGET_CENTER };
+    // ==========================================
+    // ACTO 1: RETORNO DEL SERVICIO AL RELOJ & CONVERGENCIA
+    // ==========================================
+    tl.addLabel('serv_return_clock');
+    sortedServiceShapes.forEach(shape => {
+      const target = serviceClockPos[shape.id] || { x: TARGET_CENTER, y: TARGET_CENTER };
       tl.to(
         `#g-${serviceId}-${shape.id}`,
         {
           x: target.x,
           y: target.y,
           rotation: 0,
-          duration: 0.85,
+          duration: 0.9,
           ease: 'power3.inOut'
         },
-        'return_clock+=0.01'
+        'serv_return_clock+=0.01'
       );
       tl.to(
         `#rect-${serviceId}-${shape.id}`,
@@ -273,52 +294,58 @@ export const AnimatedIsotipo = React.forwardRef<AnimatedIsotipoRef, AnimatedIsot
           },
           x: -UNIT_M / 2,
           y: -UNIT_M / 2,
-          duration: 0.85,
+          duration: 0.9,
           ease: 'power3.inOut'
         },
-        'return_clock'
+        'serv_return_clock'
       );
     });
 
-    // 2. Convergencia central y salto cromático hacia Marca Madre
-    tl.addLabel('collapse');
-    sortedShapes.forEach(shape => {
+    // Convergencia central y salto cromático hacia Marca Madre (#3D80FD / #2D60C1)
+    tl.addLabel('serv_to_master_collapse', '+=0.05');
+    sortedServiceShapes.forEach(shape => {
       const masterEquivalent = officialMasterShapes.find(m => m.id === shape.id) || officialMasterShapes[0];
       tl.to(
         `#g-${serviceId}-${shape.id}`,
         {
           x: TARGET_CENTER,
           y: TARGET_CENTER,
-          duration: 0.65,
+          duration: 0.7,
           ease: 'power3.inOut'
         },
-        'collapse'
+        'serv_to_master_collapse'
       );
       tl.to(
         `#rect-${serviceId}-${shape.id}`,
         {
           fill: masterEquivalent.color,
-          duration: 0.65,
+          duration: 0.7,
           ease: 'power3.inOut'
         },
-        'collapse'
+        'serv_to_master_collapse'
       );
     });
 
-    // 3. Formación de Reloj Maestro
-    tl.addLabel('master_clock', '+=0.1');
-    officialMasterShapes.forEach(mShape => {
-      const target = masterClockPos[mShape.id];
+    // ==========================================
+    // ACTO 2: FORMACIÓN DE RELOJ MAESTRO & METAMORFOSIS AL ISOTIPO MAESTRO
+    // ==========================================
+    tl.addLabel('master_clock_expand', '+=0.1');
+    tl.call(() => {
+      reorderDomLayering(officialMasterShapes);
+    }, undefined, 'master_clock_expand');
+
+    sortedMasterShapes.forEach(mShape => {
+      const target = masterClockPos[mShape.id] || { x: TARGET_CENTER, y: TARGET_CENTER };
       tl.to(
         `#g-${serviceId}-${mShape.id}`,
         {
           x: target.x,
           y: target.y,
           rotation: 0,
-          duration: 0.8,
+          duration: 0.9,
           ease: 'power3.inOut'
         },
-        'master_clock+=0.01'
+        'master_clock_expand+=0.01'
       );
       tl.to(
         `#rect-${serviceId}-${mShape.id}`,
@@ -332,15 +359,15 @@ export const AnimatedIsotipo = React.forwardRef<AnimatedIsotipoRef, AnimatedIsot
           x: -UNIT_M / 2,
           y: -UNIT_M / 2,
           fill: mShape.color,
-          duration: 0.8,
+          duration: 0.9,
           ease: 'power3.inOut'
         },
-        'master_clock'
+        'master_clock_expand'
       );
     });
 
-    // 4. Metamorfosis final hacia Isotipo Maestro oficial
-    tl.addLabel('master_morph', '+=0.2');
+    // Metamorfosis a Isotipo Maestro
+    tl.addLabel('master_morph', '+=0.15');
     officialMasterShapes.forEach(mShape => {
       tl.to(
         `#g-${serviceId}-${mShape.id}`,
@@ -348,7 +375,7 @@ export const AnimatedIsotipo = React.forwardRef<AnimatedIsotipoRef, AnimatedIsot
           x: mShape.x,
           y: mShape.y,
           rotation: mShape.rotation,
-          duration: 1.1,
+          duration: 1.2,
           ease: 'power3.inOut'
         },
         'master_morph'
@@ -365,10 +392,144 @@ export const AnimatedIsotipo = React.forwardRef<AnimatedIsotipoRef, AnimatedIsot
           x: -mShape.width / 2,
           y: -mShape.length / 2,
           fill: mShape.color,
-          duration: 1.1,
+          duration: 1.2,
           ease: 'power3.inOut'
         },
         'master_morph'
+      );
+    });
+
+    // Hold del Isotipo Maestro (apreciación 2.0s)
+    tl.addLabel('master_hold', '+=0.1');
+    tl.to({}, { duration: 2.0 });
+
+    // ==========================================
+    // ACTO 3: RETORNO DEL MAESTRO AL RELOJ & RETORNO AL ISOTIPO DEL SERVICIO
+    // ==========================================
+    tl.addLabel('master_return_clock');
+    sortedMasterShapes.forEach(mShape => {
+      const target = masterClockPos[mShape.id] || { x: TARGET_CENTER, y: TARGET_CENTER };
+      tl.to(
+        `#g-${serviceId}-${mShape.id}`,
+        {
+          x: target.x,
+          y: target.y,
+          rotation: 0,
+          duration: 0.9,
+          ease: 'power3.inOut'
+        },
+        'master_return_clock+=0.01'
+      );
+      tl.to(
+        `#rect-${serviceId}-${mShape.id}`,
+        {
+          attr: {
+            width: UNIT_M,
+            height: UNIT_M,
+            rx: UNIT_M / 2,
+            ry: UNIT_M / 2
+          },
+          x: -UNIT_M / 2,
+          y: -UNIT_M / 2,
+          duration: 0.9,
+          ease: 'power3.inOut'
+        },
+        'master_return_clock'
+      );
+    });
+
+    // Convergencia central y salto cromático de regreso a la paleta del Servicio
+    tl.addLabel('master_to_service_collapse', '+=0.05');
+    sortedServiceShapes.forEach(shape => {
+      tl.to(
+        `#g-${serviceId}-${shape.id}`,
+        {
+          x: TARGET_CENTER,
+          y: TARGET_CENTER,
+          duration: 0.7,
+          ease: 'power3.inOut'
+        },
+        'master_to_service_collapse'
+      );
+      tl.to(
+        `#rect-${serviceId}-${shape.id}`,
+        {
+          fill: shape.color,
+          duration: 0.7,
+          ease: 'power3.inOut'
+        },
+        'master_to_service_collapse'
+      );
+    });
+
+    // Expansión a Reloj del Servicio
+    tl.addLabel('service_clock_expand', '+=0.1');
+    tl.call(() => {
+      reorderDomLayering(shapes);
+    }, undefined, 'service_clock_expand');
+
+    sortedServiceShapes.forEach(shape => {
+      const target = serviceClockPos[shape.id] || { x: TARGET_CENTER, y: TARGET_CENTER };
+      tl.to(
+        `#g-${serviceId}-${shape.id}`,
+        {
+          x: target.x,
+          y: target.y,
+          rotation: 0,
+          duration: 0.9,
+          ease: 'power3.inOut'
+        },
+        'service_clock_expand+=0.01'
+      );
+      tl.to(
+        `#rect-${serviceId}-${shape.id}`,
+        {
+          attr: {
+            width: UNIT_M,
+            height: UNIT_M,
+            rx: UNIT_M / 2,
+            ry: UNIT_M / 2
+          },
+          x: -UNIT_M / 2,
+          y: -UNIT_M / 2,
+          fill: shape.color,
+          duration: 0.9,
+          ease: 'power3.inOut'
+        },
+        'service_clock_expand'
+      );
+    });
+
+    // Metamorfosis final de vuelta al Isotipo del Servicio
+    tl.addLabel('service_final_morph', '+=0.15');
+    shapes.forEach(shape => {
+      tl.to(
+        `#g-${serviceId}-${shape.id}`,
+        {
+          x: shape.x,
+          y: shape.y,
+          rotation: shape.rotation,
+          duration: 1.2,
+          ease: 'power3.inOut'
+        },
+        'service_final_morph'
+      );
+      tl.to(
+        `#rect-${serviceId}-${shape.id}`,
+        {
+          attr: {
+            width: shape.width,
+            height: shape.length,
+            rx: shape.width / 2,
+            ry: shape.width / 2
+          },
+          x: -shape.width / 2,
+          y: -shape.length / 2,
+          fill: shape.color,
+          duration: 1.2,
+          ease: 'power3.inOut'
+        },
+        'service_final_morph'
       );
     });
   };

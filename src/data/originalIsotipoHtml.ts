@@ -41,11 +41,8 @@ export const ORIGINAL_ISOTIPO_MAESTRO_HTML = `<!DOCTYPE html>
   <div id="stage-container" title="Haz clic para reiniciar la animación">
     <svg id="isotipo-maestro-svg" viewBox="0 0 1080 1080" preserveAspectRatio="xMidYMid meet">
       <!-- 13 Formas Geométricas Oficiales: La Arquitectura de la Luz -->
+      <g id="g-master-forma-13"><rect id="rect-master-forma-13" fill="#2D60C1" /></g>
       <g id="g-master-forma-01"><rect id="rect-master-forma-01" fill="#3D80FD" /></g>
-      <g id="g-master-forma-02"><rect id="rect-master-forma-02" fill="#3D80FD" /></g>
-      <g id="g-master-forma-03"><rect id="rect-master-forma-03" fill="#3D80FD" /></g>
-      <g id="g-master-forma-04"><rect id="rect-master-forma-04" fill="#2D60C1" /></g>
-      <g id="g-master-forma-05"><rect id="rect-master-forma-05" fill="#2D60C1" /></g>
       <g id="g-master-forma-06"><rect id="rect-master-forma-06" fill="#3D80FD" /></g>
       <g id="g-master-forma-07"><rect id="rect-master-forma-07" fill="#3D80FD" /></g>
       <g id="g-master-forma-08"><rect id="rect-master-forma-08" fill="#3D80FD" /></g>
@@ -53,7 +50,10 @@ export const ORIGINAL_ISOTIPO_MAESTRO_HTML = `<!DOCTYPE html>
       <g id="g-master-forma-10"><rect id="rect-master-forma-10" fill="#2D60C1" /></g>
       <g id="g-master-forma-11"><rect id="rect-master-forma-11" fill="#3D80FD" /></g>
       <g id="g-master-forma-12"><rect id="rect-master-forma-12" fill="#2D60C1" /></g>
-      <g id="g-master-forma-13"><rect id="rect-master-forma-13" fill="#2D60C1" /></g>
+      <g id="g-master-forma-03"><rect id="rect-master-forma-03" fill="#3D80FD" /></g>
+      <g id="g-master-forma-04"><rect id="rect-master-forma-04" fill="#2D60C1" /></g>
+      <g id="g-master-forma-05"><rect id="rect-master-forma-05" fill="#2D60C1" /></g>
+      <g id="g-master-forma-02"><rect id="rect-master-forma-02" fill="#3D80FD" /></g>
     </svg>
   </div>
 
@@ -64,6 +64,7 @@ export const ORIGINAL_ISOTIPO_MAESTRO_HTML = `<!DOCTYPE html>
     const UNIT_M = 67;
 
     const MASTER_SHAPES = [
+      { id: 'forma-13', length: 402, width: 67, x: 563.69, y: 279.43, rotation: -45, color: '#2D60C1' },
       { id: 'forma-06', length: 67, width: 67, x: 611.07, y: 611.07, rotation: -45, color: '#3D80FD' },
       { id: 'forma-07', length: 402, width: 67, x: 516.31, y: 800.57, rotation: -45, color: '#3D80FD' },
       { id: 'forma-08', length: 402, width: 67, x: 279.43, y: 516.31, rotation: 45, color: '#3D80FD' },
@@ -71,12 +72,11 @@ export const ORIGINAL_ISOTIPO_MAESTRO_HTML = `<!DOCTYPE html>
       { id: 'forma-10', length: 268, width: 67, x: 397.87, y: 540.01, rotation: 45, color: '#2D60C1' },
       { id: 'forma-11', length: 268, width: 67, x: 539.99, y: 397.87, rotation: -45, color: '#3D80FD' },
       { id: 'forma-12', length: 268, width: 67, x: 540.01, y: 682.13, rotation: -45, color: '#2D60C1' },
-      { id: 'forma-13', length: 402, width: 67, x: 563.69, y: 279.43, rotation: -45, color: '#2D60C1' },
-      { id: 'forma-04', length: 167.5, width: 67, x: 433.41, y: 646.6, rotation: 45, color: '#2D60C1' },
-      { id: 'forma-02', length: 167.5, width: 67, x: 504.47, y: 717.66, rotation: 45, color: '#3D80FD' },
       { id: 'forma-01', length: 167.5, width: 67, x: 575.53, y: 362.34, rotation: 45, color: '#3D80FD' },
       { id: 'forma-03', length: 167.5, width: 67, x: 420.4, y: 481.95, rotation: -105, color: '#3D80FD' },
-      { id: 'forma-05', length: 167.5, width: 67, x: 384.86, y: 446.42, rotation: 15, color: '#2D60C1' }
+      { id: 'forma-04', length: 167.5, width: 67, x: 433.41, y: 646.6, rotation: 45, color: '#2D60C1' },
+      { id: 'forma-05', length: 167.5, width: 67, x: 384.86, y: 446.42, rotation: 15, color: '#2D60C1' },
+      { id: 'forma-02', length: 167.5, width: 67, x: 504.47, y: 717.66, rotation: 45, color: '#3D80FD' },
     ];
 
     // Cálculo de las 12 Posiciones Horarias del Reloj
