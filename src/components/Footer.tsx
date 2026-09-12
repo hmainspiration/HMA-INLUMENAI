@@ -82,6 +82,14 @@ export const Footer: React.FC<FooterProps> = ({
               </li>
               <li>
                 <button
+                  onClick={() => onNavigate({ type: 'colors' })}
+                  className="hover:text-[#3D80FD] cursor-pointer"
+                >
+                  Sistema Cromático (Colores)
+                </button>
+              </li>
+              <li>
+                <button
                   onClick={() => onNavigate({ type: 'contact' })}
                   className="hover:text-[#3D80FD] cursor-pointer"
                 >

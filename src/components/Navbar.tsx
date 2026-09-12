@@ -31,6 +31,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     { label: 'Inicio', page: { type: 'home' } as ActivePage },
     { label: '12 Servicios', page: { type: 'home' } as ActivePage, anchor: '#servicios' },
     { label: 'Ecosistema', page: { type: 'home' } as ActivePage, anchor: '#ecosistema' },
+    { label: 'Colores', page: { type: 'home' } as ActivePage, anchor: '#colores' },
     { label: 'Trayectoria (10 Años)', page: { type: 'trajectory' } as ActivePage },
     ...(showInquiries ? [{ label: 'Contacto', page: { type: 'contact' } as ActivePage }] : [])
   ];

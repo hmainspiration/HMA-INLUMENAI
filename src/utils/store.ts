@@ -49,7 +49,8 @@ export interface SiteConfig {
   activeForegroundHtmlId?: string | null;
 
   // Hero Background Motion Matrix
-  heroMotion: HeroMotionConfig;
+  heroMotionBackground: HeroMotionConfig;
+  heroMotionForeground: HeroMotionConfig;
 
   // Architecture Section
   archTitle: string;
@@ -101,10 +102,21 @@ export interface SiteConfig {
   showServices: boolean;
   showDifferentiators: boolean;
   showTimeline: boolean;
+  showColors?: boolean;
   showContact: boolean;
 
   // Kill Switch for Contact Forms
   enableInquiries: boolean;
+
+  // Visual container toggle for animated isotypes
+  showIsotipoContainer?: boolean;
+
+  // Custom Matrix HTML (Integración con Marca Matrix en todos los servicios y Hero)
+  customMatrixHtml?: string;
+  customMatrixHtmlName?: string;
+  applyMatrixHtmlToServices?: boolean;
+  applyMatrixHtmlToHero?: boolean;
+  matrixHtmlHistory?: CustomHtmlEntry[];
 }
 
 export const getDefaultConfig = (): SiteConfig => ({
@@ -112,6 +124,14 @@ export const getDefaultConfig = (): SiteConfig => ({
   contactPhone: '+505 8462 0554',
   locationAddress: 'Servicio Actualmente en Línea',
   showLocation: false,
+  showIsotipoContainer: false,
+
+  // Custom Matrix HTML defaults
+  customMatrixHtml: '',
+  customMatrixHtmlName: '',
+  applyMatrixHtmlToServices: true,
+  applyMatrixHtmlToHero: false,
+  matrixHtmlHistory: [],
   
   socialInstagram: 'https://www.instagram.com/hmainlumenai/',
   socialFacebook: 'https://www.facebook.com/HMAInlumenai/',
@@ -135,7 +155,15 @@ export const getDefaultConfig = (): SiteConfig => ({
   activeBackgroundHtmlId: null,
   activeForegroundHtmlId: null,
 
-  heroMotion: {
+  heroMotionBackground: {
+    enabled: true,
+    intensity: 0.35,
+    speed: 1.0,
+    showDeepOrb: true,
+    showLightOrb: true,
+    showGridPattern: true
+  },
+  heroMotionForeground: {
     enabled: true,
     intensity: 0.35,
     speed: 1.0,
@@ -188,6 +216,7 @@ export const getDefaultConfig = (): SiteConfig => ({
   showServices: true,
   showDifferentiators: true,
   showTimeline: true,
+  showColors: true,
   showContact: true,
   enableInquiries: true
 });
@@ -240,4 +269,62 @@ export const savePortfolioConfig = (config: Record<string, ServicePortfolioConfi
     console.warn('Firebase portfolio sync error:', err);
   });
 };
+
+/**
+ * Normaliza y formatea cualquier código HTML/SVG para que se ajuste con
+ * precisión matemática y sin desbordes dentro de su contenedor interactivo.
+ */
+export const formatMatrixHtmlDoc = (rawHtml: string, isNegative?: boolean): string => {
+  if (!rawHtml || !rawHtml.trim()) return '';
+  const trimmed = rawHtml.trim();
+
+  const resetStyles = `
+    * {
+      box-sizing: border-box;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+    }
+    svg {
+      max-width: 100%;
+      max-height: 100%;
+      width: 100%;
+      height: 100%;
+      display: block;
+      margin: auto;
+      object-fit: contain;
+    }
+  `;
+
+  if (trimmed.toLowerCase().includes('<!doctype') || trimmed.toLowerCase().includes('<html')) {
+    // Inject reset style before </head> or at start
+    if (trimmed.includes('</head>')) {
+      return trimmed.replace('</head>', `<style>${resetStyles}</style></head>`);
+    }
+    return `<style>${resetStyles}</style>` + trimmed;
+  }
+
+  return `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    ${resetStyles}
+  </style>
+</head>
+<body>
+  ${trimmed}
+</body>
+</html>`;
+};
+
 

@@ -5,19 +5,19 @@ import { HistoryEra, ServiceItem, ShapeDefinition } from '../types';
 // Luz: #3D80FD | Profundo: #2D60C1
 // =========================================================================
 export const MASTER_SHAPES: ShapeDefinition[] = [
-  { id: 'forma-08', length: 402, width: 67, x: 279.43, y: 516.31, rotation: 45, color: '#3D80FD', displayName: 'Poste Lateral' },
   { id: 'forma-06', length: 67, width: 67, x: 611.07, y: 611.07, rotation: -45, color: '#3D80FD', displayName: 'Círculo Eje (Forma #13)' },
   { id: 'forma-07', length: 402, width: 67, x: 516.31, y: 800.57, rotation: -45, color: '#3D80FD', displayName: 'Base Inferior Izq' },
+  { id: 'forma-08', length: 402, width: 67, x: 279.43, y: 516.31, rotation: 45, color: '#3D80FD', displayName: 'Poste Lateral' },
   { id: 'forma-09', length: 402, width: 67, x: 800.57, y: 563.69, rotation: 45, color: '#2D60C1', displayName: 'Poste Derecho' },
   { id: 'forma-10', length: 268, width: 67, x: 397.87, y: 540.01, rotation: 45, color: '#2D60C1', displayName: 'Brazo Lateral Izq' },
   { id: 'forma-11', length: 268, width: 67, x: 539.99, y: 397.87, rotation: -45, color: '#3D80FD', displayName: 'Viga Central Superior' },
   { id: 'forma-12', length: 268, width: 67, x: 540.01, y: 682.13, rotation: -45, color: '#2D60C1', displayName: 'Viga Central Inferior' },
   { id: 'forma-13', length: 402, width: 67, x: 563.69, y: 279.43, rotation: -45, color: '#2D60C1', displayName: 'Diagonal Superior' },
-  { id: 'forma-03', length: 167.5, width: 67, x: 420.4, y: 481.95, rotation: -105, color: '#3D80FD', displayName: 'Guía Orbital' },
-  { id: 'forma-05', length: 167.5, width: 67, x: 384.86, y: 446.42, rotation: 15, color: '#2D60C1', displayName: 'Segmento Inflexión' },
-  { id: 'forma-01', length: 167.5, width: 67, x: 575.53, y: 362.34, rotation: 45, color: '#3D80FD', displayName: 'Pilar Conector' },
   { id: 'forma-04', length: 167.5, width: 67, x: 433.41, y: 646.6, rotation: 45, color: '#2D60C1', displayName: 'Apoyo Angular' },
-  { id: 'forma-02', length: 167.5, width: 67, x: 504.47, y: 717.66, rotation: 45, color: '#3D80FD', displayName: 'Puntal de Base' }
+  { id: 'forma-02', length: 167.5, width: 67, x: 504.47, y: 717.66, rotation: 45, color: '#3D80FD', displayName: 'Puntal de Base' },
+  { id: 'forma-01', length: 167.5, width: 67, x: 575.53, y: 362.34, rotation: 45, color: '#3D80FD', displayName: 'Pilar Conector' },
+  { id: 'forma-03', length: 167.5, width: 67, x: 420.4, y: 481.95, rotation: -105, color: '#3D80FD', displayName: 'Guía Orbital' },
+  { id: 'forma-05', length: 167.5, width: 67, x: 384.86, y: 446.42, rotation: 15, color: '#2D60C1', displayName: 'Segmento Inflexión' }
 ];
 
 export const MASTER_SHAPES_POSITIVO_NEGATIVO: ShapeDefinition[] = MASTER_SHAPES.map(s => ({

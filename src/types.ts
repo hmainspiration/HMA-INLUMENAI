@@ -58,4 +58,5 @@ export type ActivePage =
   | { type: 'service'; serviceId: ServiceId }
   | { type: 'trajectory' }
   | { type: 'contact' }
+  | { type: 'colors' }
   | { type: 'admin' };

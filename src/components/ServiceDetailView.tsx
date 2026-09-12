@@ -2,7 +2,8 @@ import React, { useRef, useState, useEffect } from 'react';
 import { ServiceItem } from '../types';
 import { AnimatedIsotipo, AnimatedIsotipoRef } from './AnimatedIsotipo';
 import { SERVICES } from '../data/brandData';
-import { getPortfolioConfig, getSiteConfig, SiteConfig, PortfolioMedia } from '../utils/store';
+import { getPortfolioConfig, getSiteConfig, SiteConfig, PortfolioMedia, formatMatrixHtmlDoc } from '../utils/store';
+import { subscribeSiteConfig } from '../lib/firebase';
 import { getPortfolioFiles } from '../utils/portfolioRegistry';
 import { MediaGallery } from './MediaGallery';
 import {
@@ -47,7 +48,21 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({
     setAutoFiles(allFiles.filter(f => f.includes(`/portfolio/${service.id}/`)));
     
     setHasTransformedToMaster(false);
+
+    const unsub = subscribeSiteConfig((remoteConfig) => {
+      if (remoteConfig) {
+        setConfig(prev => ({ ...(prev || getSiteConfig()), ...remoteConfig }));
+      }
+    });
+
+    return () => unsub();
   }, [service.id]);
+
+  const useCustomMatrixHtml = Boolean(
+    config?.applyMatrixHtmlToServices !== false && 
+    config?.customMatrixHtml && 
+    config.customMatrixHtml.trim().length > 0
+  );
 
   const renderPortfolioSection = () => {
     if (!portfolioData?.isPublished) return null;
@@ -99,23 +114,28 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({
   };
 
 
-  // Trigger Section 5.3 transition
+  // Trigger Section 5.3 transition (o mostrar HTML personalizado de Marca Matrix)
   const handleTriggerMasterTransition = () => {
     setIsTransforming(true);
-    if (isotipoRef.current) {
-      isotipoRef.current.transitionToMaster();
+    if (useCustomMatrixHtml) {
       setTimeout(() => {
         setHasTransformedToMaster(true);
         setIsTransforming(false);
-      }, 3500);
+      }, 250);
+      return;
+    }
+    if (isotipoRef.current) {
+      isotipoRef.current.transitionToMaster();
     }
   };
 
   const handleResetServiceIsotipo = () => {
-    setHasTransformedToMaster(false);
+    setIsTransforming(true);
     if (isotipoRef.current) {
-      isotipoRef.current.replay();
+      isotipoRef.current.resetToService();
     }
+    setHasTransformedToMaster(false);
+    setIsTransforming(false);
   };
 
   return (
@@ -205,67 +225,126 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({
                 {/* The Mandatory Interactive Service -> Master Transition CTA */}
                 <button
                   onClick={handleTriggerMasterTransition}
-                  disabled={isTransforming || hasTransformedToMaster}
+                  disabled={isTransforming}
                   className={`btn-primary btn-lg border flex items-center gap-2 cursor-pointer transition-all ${
                     hasTransformedToMaster
-                      ? 'bg-[#3D80FD]/20 border-[#3D80FD] text-[#3D80FD]'
+                      ? 'bg-[#3D80FD]/15 border-[#3D80FD] text-[#3D80FD] hover:bg-[#3D80FD]/25'
                       : isNegative
                       ? 'border-[#FEFAE8]/30 hover:bg-[#FEFAE8]/10'
                       : 'border-[#060C04]/20 hover:bg-[#060C04]/5'
                   }`}
-                  title="Transformar isotipo hacia el Isotipo Maestro HMA"
+                  title={
+                    hasTransformedToMaster
+                      ? 'Repetir la animación de cómo pasa del isotipo de servicio al Isotipo Maestro'
+                      : 'Transformar isotipo hacia el Isotipo Maestro HMA'
+                  }
                 >
-                  <Layers className="w-4 h-4 text-[#3D80FD]" />
+                  {isTransforming ? (
+                    <Sparkles className="w-4 h-4 text-[#3D80FD] animate-spin" />
+                  ) : (
+                    <Layers className="w-4 h-4 text-[#3D80FD]" />
+                  )}
                   <span>
-                    {hasTransformedToMaster
-                      ? 'Integrado en Isotipo Maestro'
+                    {isTransforming
+                      ? 'Metamorfoseando...'
+                      : hasTransformedToMaster
+                      ? 'Repetir Transición al Maestro'
                       : 'Integrar con Marca Matrix'}
                   </span>
                 </button>
+
+                {hasTransformedToMaster && (
+                  <button
+                    onClick={handleResetServiceIsotipo}
+                    disabled={isTransforming}
+                    className={`btn-primary btn-lg border flex items-center gap-2 cursor-pointer transition-all ${
+                      isNegative
+                        ? 'border-[#FEFAE8]/30 hover:bg-[#FEFAE8]/10 text-[#FEFAE8]'
+                        : 'border-[#060C04]/20 hover:bg-[#060C04]/5 text-[#060C04]'
+                    }`}
+                    title={`Volver al isotipo original de ${service.name}`}
+                  >
+                    <RotateCcw className="w-4 h-4 text-inherit" />
+                    <span>Volver a {service.name}</span>
+                  </button>
+                )}
               </div>
             </div>
 
             {/* Right: The Live Animated Isotipo Canvas */}
             <div className="lg:col-span-5 flex flex-col items-center justify-center">
               <div
-                className={`w-full max-w-[440px] p-8 rounded-3xl border relative flex flex-col items-center justify-center transition-all ${
-                  isNegative
-                    ? 'bg-[#060C04]/80 border-[#FEFAE8]/15 shadow-2xl'
-                    : 'bg-white border-[#060C04]/10 shadow-lg'
+                className={`w-full max-w-[460px] flex flex-col items-center justify-center transition-all ${
+                  config?.showIsotipoContainer
+                    ? isNegative
+                      ? 'p-8 rounded-3xl border bg-[#060C04]/80 border-[#FEFAE8]/15 shadow-2xl'
+                      : 'p-8 rounded-3xl border bg-white border-[#060C04]/10 shadow-lg'
+                    : 'p-2'
                 }`}
               >
                 <div className="w-full aspect-square flex items-center justify-center">
-                  <AnimatedIsotipo
-                    ref={isotipoRef}
-                    shapes={service.shapes}
-                    serviceId={`service-${service.id}`}
-                    isServiceView={true}
-                    isNegative={isNegative}
-                    allowReplay={!hasTransformedToMaster}
-                  />
+                  {hasTransformedToMaster && useCustomMatrixHtml ? (
+                    <div className="w-full h-full relative rounded-2xl overflow-hidden flex items-center justify-center">
+                      <iframe
+                        srcDoc={formatMatrixHtmlDoc(config!.customMatrixHtml!, isNegative)}
+                        title={`HTML Integración Marca Matrix - ${service.name}`}
+                        className="w-full h-full border-0 pointer-events-auto bg-transparent"
+                        sandbox="allow-scripts allow-same-origin"
+                      />
+                    </div>
+                  ) : (
+                    <AnimatedIsotipo
+                      ref={isotipoRef}
+                      shapes={service.shapes}
+                      serviceId={`service-${service.id}`}
+                      isServiceView={true}
+                      isNegative={isNegative}
+                      allowReplay={true}
+                      onTransitionComplete={() => {
+                        setIsTransforming(false);
+                        setHasTransformedToMaster(true);
+                      }}
+                    />
+                  )}
                 </div>
 
                 {/* Interactive Status Indicator */}
                 <div className="mt-3 text-center space-y-1">
                   <p className="font-general text-xs font-semibold tracking-wide uppercase" style={{ color: hasTransformedToMaster ? '#3D80FD' : service.luzColor }}>
                     {hasTransformedToMaster
-                      ? 'Isotipo Maestro HMA (Consolidado)'
+                      ? (useCustomMatrixHtml && config?.customMatrixHtmlName
+                          ? config.customMatrixHtmlName
+                          : 'Isotipo Maestro HMA (Marca Matrix)')
                       : `Isotipo ${service.name} (Consolidado)`}
                   </p>
                   <p className="font-general text-[11px] opacity-60">
                     {hasTransformedToMaster
-                      ? 'Morfología maestra unificada en #3D80FD / #2D60C1'
+                      ? (useCustomMatrixHtml
+                          ? 'Renderizado desde HTML personalizado guardado en Firestore'
+                          : 'Morfología maestra unificada en #3D80FD / #2D60C1')
                       : `Subpaleta cerrada: ${service.luzColor} / ${service.profundoColor}`}
                   </p>
 
                   {hasTransformedToMaster && (
-                    <button
-                      onClick={handleResetServiceIsotipo}
-                      className="inline-flex items-center gap-1 text-[11px] font-general font-medium text-[#3D80FD] hover:underline pt-2 cursor-pointer"
-                    >
-                      <RotateCcw className="w-3 h-3" />
-                      <span>Volver al isotipo original de {service.name}</span>
-                    </button>
+                    <div className="flex items-center justify-center gap-3 pt-2">
+                      <button
+                        onClick={handleTriggerMasterTransition}
+                        disabled={isTransforming}
+                        className="inline-flex items-center gap-1 text-[11px] font-general font-medium text-[#3D80FD] hover:underline cursor-pointer"
+                      >
+                        <Sparkles className="w-3 h-3" />
+                        <span>Recargar Marca Matrix</span>
+                      </button>
+                      <span className="text-[10px] opacity-40">•</span>
+                      <button
+                        onClick={handleResetServiceIsotipo}
+                        disabled={isTransforming}
+                        className="inline-flex items-center gap-1 text-[11px] font-general font-medium text-[#3D80FD] hover:underline cursor-pointer"
+                      >
+                        <RotateCcw className="w-3 h-3" />
+                        <span>Volver al isotipo de {service.name}</span>
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>

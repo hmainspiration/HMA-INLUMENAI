@@ -13,6 +13,8 @@ export const getPageUrl = (page: ActivePage): string => {
       return '/admin';
     case 'trajectory':
       return '/trayectoria';
+    case 'colors':
+      return '/colores';
     case 'contact':
       return '/contacto';
     case 'service':
@@ -35,6 +37,10 @@ export const parsePathToPage = (pathname: string): ActivePage => {
   
   if (cleanPath === '/trayectoria' || cleanPath === '/heritage-timeline') {
     return { type: 'trajectory' };
+  }
+  
+  if (cleanPath === '/colores' || cleanPath === '/colors') {
+    return { type: 'colors' };
   }
   
   if (cleanPath === '/contacto' || cleanPath === '/contact') {

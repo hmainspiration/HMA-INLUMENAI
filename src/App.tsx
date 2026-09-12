@@ -11,6 +11,7 @@ import { Differentiators } from './components/Differentiators';
 import { HistoryTimeline } from './components/HistoryTimeline';
 import { ServiceDetailView } from './components/ServiceDetailView';
 import { ContactSection } from './components/ContactSection';
+import { ColorsSection } from './components/ColorsSection';
 import { Footer } from './components/Footer';
 import { AdminPanel } from './components/AdminPanel';
 import { updateFavicon } from './utils/favicon';
@@ -151,6 +152,10 @@ export default function App() {
               <Differentiators isNegative={isNegative} />
             )}
             
+            {config?.showColors !== false && (
+              <ColorsSection isNegative={isNegative} />
+            )}
+            
             {config?.showTimeline !== false && (
               <HistoryTimeline
                 isNegative={isNegative}
@@ -185,6 +190,12 @@ export default function App() {
               isFullView={true}
               onNavigateHeritage={() => handleSelectService('heritage')}
             />
+          </div>
+        )}
+
+        {activePage.type === 'colors' && (
+          <div className="pt-8">
+            <ColorsSection isNegative={isNegative} />
           </div>
         )}
 

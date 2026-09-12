@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { AnimatedIsotipo } from './AnimatedIsotipo';
 import { MASTER_SHAPES } from '../data/brandData';
 import { ArrowDown, Sparkles, Layers } from 'lucide-react';
-import { getSiteConfig, SiteConfig } from '../utils/store';
+import { getSiteConfig, SiteConfig, formatMatrixHtmlDoc } from '../utils/store';
+import { subscribeSiteConfig } from '../lib/firebase';
 import { HeroMotionBackground } from './HeroMotionBackground';
 
 interface HeroProps {
@@ -20,6 +21,12 @@ export const Hero: React.FC<HeroProps> = ({
 
   useEffect(() => {
     setConfig(getSiteConfig());
+    const unsub = subscribeSiteConfig((remoteConfig) => {
+      if (remoteConfig) {
+        setConfig(prev => ({ ...(prev || getSiteConfig()), ...remoteConfig }));
+      }
+    });
+    return () => unsub();
   }, []);
 
   const activeBg = config?.activeBackgroundHtmlId 
@@ -30,11 +37,18 @@ export const Hero: React.FC<HeroProps> = ({
     ? config.customHtmlHistory?.find(h => h.id === config.activeForegroundHtmlId) 
     : null;
 
+  const customHeroHtml = (config?.applyMatrixHtmlToHero && config?.customMatrixHtml)
+    ? config.customMatrixHtml
+    : activeFg?.html || null;
+
   return (
     <section className="relative overflow-hidden pt-12 pb-20 lg:pt-16 lg:pb-28 min-h-[90vh] flex items-center">
       {/* Background */}
       {activeBg ? (
-        <div className="absolute inset-0 z-0 pointer-events-none">
+        <div 
+          className="absolute inset-0 z-0 pointer-events-none transition-opacity duration-300"
+          style={{ opacity: config?.heroMotionBackground?.intensity ?? 1 }}
+        >
           <iframe 
             srcDoc={activeBg.html} 
             title="Custom Background" 
@@ -45,7 +59,7 @@ export const Hero: React.FC<HeroProps> = ({
       ) : (
         <HeroMotionBackground
           isNegative={isNegative}
-          config={config?.heroMotion}
+          config={config?.heroMotionBackground}
         />
       )}
 
@@ -125,18 +139,24 @@ export const Hero: React.FC<HeroProps> = ({
 
           {/* Right Column: Animated Master Logo (13 Shapes) OR Custom HTML */}
           <div className="lg:col-span-5 flex flex-col items-center justify-center">
-            {activeFg ? (
-              <div className="w-full aspect-square relative rounded-3xl overflow-hidden shadow-2xl bg-black/5 dark:bg-white/5 border border-[#3D80FD]/20">
-                <iframe 
-                  srcDoc={activeFg.html} 
-                  title="Custom Foreground" 
-                  className="w-full h-full border-0"
-                  sandbox="allow-scripts allow-same-origin"
-                />
-              </div>
-            ) : (
-              <div className="w-full max-w-[460px] flex flex-col items-center justify-center">
-                <div className="w-full aspect-square flex items-center justify-center">
+            <div
+              className={`w-full max-w-[460px] flex flex-col items-center justify-center transition-all ${
+                config?.showIsotipoContainer
+                  ? isNegative
+                    ? 'p-8 rounded-3xl border bg-[#060C04]/80 border-[#FEFAE8]/15 shadow-2xl'
+                    : 'p-8 rounded-3xl border bg-white border-[#060C04]/10 shadow-lg'
+                  : 'p-0 bg-transparent'
+              }`}
+            >
+              <div className="w-full aspect-square flex items-center justify-center relative">
+                {customHeroHtml ? (
+                  <iframe
+                    srcDoc={formatMatrixHtmlDoc(customHeroHtml, isNegative)}
+                    title="Custom Matrix Isotipo"
+                    className="w-full h-full border-0 bg-transparent pointer-events-auto"
+                    sandbox="allow-scripts allow-same-origin"
+                  />
+                ) : (
                   <AnimatedIsotipo
                     shapes={MASTER_SHAPES}
                     serviceId="master-home"
@@ -144,19 +164,23 @@ export const Hero: React.FC<HeroProps> = ({
                     isNegative={isNegative}
                     allowReplay={true}
                   />
-                </div>
-
-                {/* Sub-label explaining the geometry */}
-                <div className="text-center mt-3">
-                  <p className="font-general text-xs tracking-wider uppercase font-semibold text-[#3D80FD]">
-                    Isotipo Maestro
-                  </p>
-                  <p className={`font-general text-[11px] mt-0.5 ${isNegative ? 'text-[#FEFAE8]/60' : 'text-[#060C04]/60'}`}>
-                    12 Rectángulos Redondeados + 1 Círculo Central Constante
-                  </p>
-                </div>
+                )}
               </div>
-            )}
+
+              {/* Sub-label explaining the geometry */}
+              <div className="text-center mt-3">
+                <p className="font-general text-xs tracking-wider uppercase font-semibold text-[#3D80FD]">
+                  {customHeroHtml && config?.customMatrixHtmlName
+                    ? config.customMatrixHtmlName
+                    : 'Isotipo Maestro HMA'}
+                </p>
+                <p className={`font-general text-[11px] mt-0.5 ${isNegative ? 'text-[#FEFAE8]/60' : 'text-[#060C04]/60'}`}>
+                  {customHeroHtml
+                    ? 'Renderizado desde código SVG/HTML activo en Marca Matrix'
+                    : '12 Rectángulos Redondeados + 1 Círculo Central Constante'}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>

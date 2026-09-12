@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { SERVICES } from '../data/brandData';
+import { SERVICES, MASTER_SHAPES } from '../data/brandData';
+import { AnimatedIsotipo } from './AnimatedIsotipo';
+import { ORIGINAL_ISOTIPO_MAESTRO_HTML, ORIGINAL_ISOTIPO_MAESTRO_NAME } from '../data/originalIsotipoHtml';
 import { EVOLUTION_ERAS } from '../data/evolutionEras';
 import { getPortfolioFiles } from '../utils/portfolioRegistry';
 import {
@@ -9,7 +11,9 @@ import {
   savePortfolioConfig,
   SiteConfig,
   ServicePortfolioConfig,
-  PortfolioMedia
+  PortfolioMedia,
+  CustomHtmlEntry,
+  formatMatrixHtmlDoc
 } from '../utils/store';
 import {
   Sliders,
@@ -20,6 +24,7 @@ import {
   Plus,
   Trash2,
   Eye,
+  Code,
   Video,
   Music,
   Image as ImageIcon,
@@ -33,6 +38,7 @@ import {
   Download,
   Upload,
   Sparkles,
+  Layers,
   RotateCcw,
   MessageSquare,
   Mail,
@@ -113,6 +119,13 @@ export const AdminPanel: React.FC<{
   const [importHtmlText, setImportHtmlText] = useState('');
   const [importHtmlName, setImportHtmlName] = useState('');
 
+  // Custom Matrix HTML Management (Integrar con Marca Matrix en todos los servicios)
+  const matrixHtmlFileInputRef = React.useRef<HTMLInputElement>(null);
+  const [matrixHtmlInput, setMatrixHtmlInput] = useState('');
+  const [matrixHtmlNameInput, setMatrixHtmlNameInput] = useState('');
+  const [matrixPreviewNegative, setMatrixPreviewNegative] = useState(false);
+  const [previewRefreshKey, setPreviewRefreshKey] = useState(0);
+
   // Security State
   const [newPinInput, setNewPinInput] = useState('');
   const [isUpdatingPin, setIsUpdatingPin] = useState(false);
@@ -132,11 +145,20 @@ export const AdminPanel: React.FC<{
       setIsAuthenticated(true);
     }
 
+    const initialConfig = getSiteConfig();
     setServicesJson(JSON.stringify(SERVICES, null, 2));
     setErasJson(JSON.stringify(EVOLUTION_ERAS, null, 2));
-    setSiteConfig(getSiteConfig());
+    setSiteConfig(initialConfig);
     setPortfolioConfig(getPortfolioConfig());
     setAutoFiles(getPortfolioFiles());
+
+    if (initialConfig.customMatrixHtml) {
+      setMatrixHtmlInput(initialConfig.customMatrixHtml);
+      setMatrixHtmlNameInput(initialConfig.customMatrixHtmlName || '');
+    } else {
+      setMatrixHtmlInput(ORIGINAL_ISOTIPO_MAESTRO_HTML);
+      setMatrixHtmlNameInput(ORIGINAL_ISOTIPO_MAESTRO_NAME);
+    }
 
     // Subscribe to real-time Firestore updates
     const unsubSite = subscribeSiteConfig((remoteConfig) => {
@@ -207,7 +229,6 @@ export const AdminPanel: React.FC<{
       localStorage.setItem('hma_services', JSON.stringify(parsedServices));
       localStorage.setItem('hma_eras', JSON.stringify(parsedEras));
       showToast('Datos maestros (JSON) guardados exitosamente.');
-      setTimeout(() => window.location.reload(), 1000);
     } catch (err) {
       alert('Error: Formato JSON inválido.');
     }
@@ -218,13 +239,12 @@ export const AdminPanel: React.FC<{
     if (siteConfig) {
       saveSiteConfig(siteConfig);
       showToast('Configuración general actualizada.');
-      setTimeout(() => window.location.reload(), 1000);
     }
   };
 
   const handleExportMotionHtml = () => {
     if (!siteConfig) return;
-    const htmlContent = generateStandaloneMotionHtml(siteConfig.heroMotion);
+    const htmlContent = generateStandaloneMotionHtml(siteConfig.heroMotionBackground);
     const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -289,7 +309,7 @@ export const AdminPanel: React.FC<{
 
   const handleCopyMotionHtml = () => {
     if (!siteConfig) return;
-    const htmlContent = generateStandaloneMotionHtml(siteConfig.heroMotion);
+    const htmlContent = generateStandaloneMotionHtml(siteConfig.heroMotionBackground);
     navigator.clipboard.writeText(htmlContent);
     showToast('Código HTML de la animación copiado al portapapeles.');
   };
@@ -298,7 +318,7 @@ export const AdminPanel: React.FC<{
     if (!siteConfig) return;
     setSiteConfig({
       ...siteConfig,
-      heroMotion: {
+      heroMotionBackground: {
         enabled: true,
         intensity: 0.35,
         speed: 1.0,
@@ -308,6 +328,147 @@ export const AdminPanel: React.FC<{
       }
     });
     showToast('Valores de la animación restablecidos a los recomendados.');
+  };
+
+  // Matrix HTML Handlers (Integrar con Marca Matrix)
+  const handleSaveMatrixHtml = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!siteConfig) return;
+
+    const trimmedHtml = matrixHtmlInput.trim();
+    if (!trimmedHtml) {
+      alert('Por favor introduce un código HTML o SVG válido antes de guardar.');
+      return;
+    }
+
+    const versionName = matrixHtmlNameInput.trim() || `Personalizado ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+
+    let newHistory = siteConfig.matrixHtmlHistory ? [...siteConfig.matrixHtmlHistory] : [];
+    
+    // Check if entry already exists in history with same html or name
+    const existingIndex = newHistory.findIndex(h => h.html === trimmedHtml || h.name === versionName);
+    const newEntry: CustomHtmlEntry = {
+      id: existingIndex >= 0 ? newHistory[existingIndex].id : 'matrix_' + Date.now().toString(36),
+      name: versionName,
+      html: trimmedHtml,
+      timestamp: Date.now()
+    };
+
+    if (existingIndex >= 0) {
+      newHistory[existingIndex] = newEntry;
+    } else {
+      newHistory = [newEntry, ...newHistory];
+    }
+
+    const updatedConfig: SiteConfig = {
+      ...siteConfig,
+      customMatrixHtml: trimmedHtml,
+      customMatrixHtmlName: versionName,
+      applyMatrixHtmlToServices: siteConfig.applyMatrixHtmlToServices !== false,
+      matrixHtmlHistory: newHistory
+    };
+
+    setSiteConfig(updatedConfig);
+    saveSiteConfig(updatedConfig);
+    showToast(`"${versionName}" guardado y aplicado en el ecosistema.`);
+  };
+
+  const handleUploadMatrixHtmlFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const content = event.target?.result as string;
+      if (content) {
+        setMatrixHtmlInput(content);
+        const fileName = file.name.replace(/\.(html|htm|svg)$/i, '');
+        setMatrixHtmlNameInput(fileName);
+        showToast(`Archivo "${file.name}" cargado en el editor. Pulsa "Guardar y Aplicar" para activarlo.`);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
+  // Switch to Original Isotipo (Select & Apply in 1 click)
+  const handleSelectOriginal = () => {
+    if (!siteConfig) return;
+    setMatrixHtmlInput(ORIGINAL_ISOTIPO_MAESTRO_HTML);
+    setMatrixHtmlNameInput(ORIGINAL_ISOTIPO_MAESTRO_NAME);
+    
+    const updatedConfig: SiteConfig = {
+      ...siteConfig,
+      customMatrixHtml: '',
+      customMatrixHtmlName: '',
+      applyMatrixHtmlToServices: false,
+      applyMatrixHtmlToHero: false
+    };
+    setSiteConfig(updatedConfig);
+    saveSiteConfig(updatedConfig);
+    showToast('Isotipo Maestro Original seleccionado y aplicado.');
+  };
+
+  // Switch to Custom Version (Select & Apply in 1 click)
+  const handleSelectCustomVersion = (entry: CustomHtmlEntry) => {
+    if (!siteConfig) return;
+    setMatrixHtmlInput(entry.html);
+    setMatrixHtmlNameInput(entry.name);
+    const updatedConfig: SiteConfig = {
+      ...siteConfig,
+      customMatrixHtml: entry.html,
+      customMatrixHtmlName: entry.name,
+      applyMatrixHtmlToServices: true
+    };
+    setSiteConfig(updatedConfig);
+    saveSiteConfig(updatedConfig);
+    showToast(`Versión "${entry.name}" seleccionada y aplicada.`);
+  };
+
+  // Delete version from history
+  const handleDeleteMatrixHistory = (id: string, e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+    if (!siteConfig) return;
+    
+    const entryToDelete = (siteConfig.matrixHtmlHistory || []).find(h => h.id === id);
+    const updatedHistory = (siteConfig.matrixHtmlHistory || []).filter(h => h.id !== id);
+    
+    // If the active one is deleted, fallback to original or first available
+    const isActiveDeleted = entryToDelete && siteConfig.customMatrixHtml === entryToDelete.html;
+    
+    const updatedConfig: SiteConfig = {
+      ...siteConfig,
+      matrixHtmlHistory: updatedHistory,
+      ...(isActiveDeleted ? {
+        customMatrixHtml: updatedHistory.length > 0 ? updatedHistory[0].html : '',
+        customMatrixHtmlName: updatedHistory.length > 0 ? updatedHistory[0].name : '',
+        applyMatrixHtmlToServices: updatedHistory.length > 0
+      } : {})
+    };
+
+    if (isActiveDeleted) {
+      if (updatedHistory.length > 0) {
+        setMatrixHtmlInput(updatedHistory[0].html);
+        setMatrixHtmlNameInput(updatedHistory[0].name);
+      } else {
+        setMatrixHtmlInput(ORIGINAL_ISOTIPO_MAESTRO_HTML);
+        setMatrixHtmlNameInput(ORIGINAL_ISOTIPO_MAESTRO_NAME);
+      }
+    }
+
+    setSiteConfig(updatedConfig);
+    saveSiteConfig(updatedConfig);
+    showToast('Versión eliminada del historial.');
+  };
+
+  // Clear Editor
+  const handleClearMatrixEditor = () => {
+    setMatrixHtmlInput('');
+    setMatrixHtmlNameInput('');
+    showToast('Editor de código vaciado.');
   };
 
   const handleTogglePortfolioPublish = (serviceId: string) => {
@@ -600,9 +761,9 @@ export const AdminPanel: React.FC<{
               </button>
             )}
 
-            <div className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-mono font-medium border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-              <Flame className="w-3.5 h-3.5 text-amber-500" />
-              <span>Firestore En Vivo</span>
+            <div className={`hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-mono uppercase tracking-widest transition-opacity cursor-default select-none ${isNegative ? 'text-white/40 hover:text-white/80' : 'text-black/40 hover:text-black/80'}`}>
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+              <span className="whitespace-nowrap">En línea</span>
             </div>
             <button
               onClick={onNavigateHome}
@@ -633,7 +794,22 @@ export const AdminPanel: React.FC<{
 
         {/* TAB 1: PORTAFOLIOS MULTIMEDIA */}
         {activeTab === 'portfolio' && (
-          <div className="space-y-8">
+          <div className={`p-8 rounded-3xl shadow-xl space-y-8 ${isNegative ? 'bg-white/5 border border-white/10' : 'bg-white border border-black/10'}`}>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-inherit pb-4 gap-4">
+              <div>
+                <h2 className="text-2xl font-aeonik font-bold">Gestión de Portafolios</h2>
+                <p className="text-xs opacity-60">Administra los recursos multimedia de cada disciplina.</p>
+              </div>
+              <button
+                onClick={() => {
+                  savePortfolioConfig(portfolioConfig);
+                  showToast('Cambios del portafolio guardados exitosamente.');
+                }}
+                className="px-6 py-2.5 rounded-2xl font-bold uppercase tracking-wider text-xs bg-[#3D80FD] text-white hover:bg-blue-600 transition-colors shadow-md cursor-pointer"
+              >
+                Guardar Cambios
+              </button>
+            </div>
             
             {/* 1.1 Horizontal Service Selector */}
             <div className="space-y-3">
@@ -1065,6 +1241,381 @@ export const AdminPanel: React.FC<{
 
             <form onSubmit={handleSaveConfig} className="space-y-8">
               
+              {/* MÓDULO EXCLUSIVO: ISOTIPO MAESTRO & INTEGRAR CON MARCA MATRIX (HTML PERSONALIZADO) */}
+              <div className={`p-6 sm:p-8 rounded-3xl border space-y-6 ${
+                isNegative ? 'bg-gradient-to-b from-[#3D80FD]/10 to-transparent border-[#3D80FD]/30' : 'bg-gradient-to-b from-[#3D80FD]/5 to-transparent border-[#3D80FD]/30 shadow-sm'
+              }`}>
+                {/* Header with Title & Action to upload file */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-inherit pb-5">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2.5">
+                      <div className="p-2 rounded-xl bg-[#3D80FD] text-white shadow-md">
+                        <Layers className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h3 className="font-aeonik font-bold text-xl">Isotipo Maestro &amp; Integración con Marca Matrix</h3>
+                        <p className="text-xs opacity-70">
+                          Selecciona entre el Isotipo Maestro Original o tus versiones personalizadas. Al seleccionar se muestra su código y puedes aplicarlo inmediatamente en todo el ecosistema.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    {/* Hidden file input for .html / .svg */}
+                    <input
+                      type="file"
+                      ref={matrixHtmlFileInputRef}
+                      accept=".html,.htm,.svg"
+                      onChange={handleUploadMatrixHtmlFile}
+                      className="hidden"
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() => matrixHtmlFileInputRef.current?.click()}
+                      className={`px-3.5 py-2 rounded-xl text-xs font-bold border transition-colors flex items-center gap-1.5 cursor-pointer ${
+                        isNegative ? 'border-white/15 bg-white/5 hover:bg-white/10 text-[#FEFAE8]' : 'border-black/15 bg-white hover:bg-black/5 text-[#060C04]'
+                      }`}
+                      title="Subir archivo .html o .svg desde tu equipo"
+                    >
+                      <Upload className="w-3.5 h-3.5 text-[#3D80FD]" />
+                      <span>Subir archivo .html o .svg</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* 1. SELECCIONADOR RÁPIDO DE VERSIONES (SELECT & APPLY / SELECT & VIEW CODE) */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold uppercase tracking-wider opacity-80 flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-[#3D80FD]" />
+                      <span>1. Seleccionar Isotipo o Versión para Activar y Ver Código</span>
+                    </span>
+                    <span className="text-[11px] opacity-50 font-mono">
+                      {(siteConfig.matrixHtmlHistory?.length || 0) + 1} disponibles
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {/* Opción 1: Isotipo Maestro Original */}
+                    <div
+                      onClick={handleSelectOriginal}
+                      className={`p-3.5 rounded-2xl border flex flex-col justify-between gap-3 cursor-pointer transition-all select-none ${
+                        !siteConfig.customMatrixHtml
+                          ? 'border-[#3D80FD] bg-[#3D80FD]/15 shadow-md ring-2 ring-[#3D80FD]/30'
+                          : isNegative
+                          ? 'border-white/10 bg-white/5 hover:border-white/20'
+                          : 'border-black/10 bg-white hover:border-black/20'
+                      }`}
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-bold text-xs flex items-center gap-1.5">
+                            <Sparkles className="w-3.5 h-3.5 text-[#3D80FD]" />
+                            <span>Isotipo Maestro Original</span>
+                          </span>
+                          {!siteConfig.customMatrixHtml ? (
+                            <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-[#3D80FD] text-white">
+                              ACTIVO EN VIVO
+                            </span>
+                          ) : (
+                            <span className="px-1.5 py-0.5 rounded text-[9px] font-mono opacity-60 border border-current">
+                              CLIC PARA APLICAR
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[11px] opacity-70 leading-snug">
+                          Animación GSAP 13 Formas oficiales (2016–2026).
+                        </p>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-2 border-t border-inherit/30 text-xs font-bold">
+                        <span className={!siteConfig.customMatrixHtml ? 'text-[#3D80FD]' : 'opacity-60'}>
+                          {!siteConfig.customMatrixHtml ? '✓ Aplicado en el sitio' : 'Seleccionar y Aplicar'}
+                        </span>
+                        <Code className="w-3.5 h-3.5 text-[#3D80FD]" />
+                      </div>
+                    </div>
+
+                    {/* Versiones Personalizadas */}
+                    {siteConfig.matrixHtmlHistory && siteConfig.matrixHtmlHistory.map((item) => {
+                      const isCurrent = siteConfig.customMatrixHtml === item.html;
+                      return (
+                        <div
+                          key={item.id}
+                          onClick={() => handleSelectCustomVersion(item)}
+                          className={`p-3.5 rounded-2xl border flex flex-col justify-between gap-3 cursor-pointer transition-all select-none group ${
+                            isCurrent
+                              ? 'border-[#3D80FD] bg-[#3D80FD]/15 shadow-md ring-2 ring-[#3D80FD]/30'
+                              : isNegative
+                              ? 'border-white/10 bg-white/5 hover:border-white/20'
+                              : 'border-black/10 bg-white hover:border-black/20'
+                          }`}
+                        >
+                          <div className="space-y-1">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="font-bold text-xs truncate max-w-[160px]">{item.name}</span>
+                              {isCurrent ? (
+                                <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500 text-white">
+                                  ACTIVO EN VIVO
+                                </span>
+                              ) : (
+                                <span className="px-1.5 py-0.5 rounded text-[9px] font-mono opacity-60 border border-current">
+                                  CLIC PARA APLICAR
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[10px] opacity-50 font-mono">
+                              {new Date(item.timestamp).toLocaleString()}
+                            </p>
+                          </div>
+
+                          <div className="flex items-center justify-between pt-2 border-t border-inherit/30 text-xs font-bold">
+                            <span className={isCurrent ? 'text-emerald-500' : 'opacity-60 group-hover:opacity-100'}>
+                              {isCurrent ? '✓ Aplicado en el sitio' : 'Seleccionar y Aplicar'}
+                            </span>
+
+                            <button
+                              type="button"
+                              onClick={(e) => handleDeleteMatrixHistory(item.id, e)}
+                              className="p-1 rounded-md text-red-500 hover:bg-red-500/20 transition-colors cursor-pointer"
+                              title="Eliminar esta versión guardada"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* 2. EDITOR DE CÓDIGO Y VISTA PREVIA */}
+                <div className="pt-4 border-t border-inherit space-y-4">
+                  <span className="text-xs font-bold uppercase tracking-wider opacity-80 block">
+                    2. Editor de Código &amp; Vista Previa en Vivo
+                  </span>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    {/* Left Column: Code Textarea */}
+                    <div className="lg:col-span-7 space-y-3">
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold uppercase tracking-wider opacity-70 block">
+                          Nombre o Título de la Versión
+                        </label>
+                        <input
+                          type="text"
+                          value={matrixHtmlNameInput}
+                          onChange={(e) => setMatrixHtmlNameInput(e.target.value)}
+                          placeholder="ej. Isotipo Maestro Personalizado v1"
+                          className={`w-full p-3 rounded-xl text-sm outline-none border transition-colors ${
+                            isNegative ? 'bg-black/50 border-white/10 text-white focus:border-[#3D80FD]' : 'bg-white border-black/10 text-black focus:border-[#3D80FD]'
+                          }`}
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <label className="text-xs font-bold uppercase tracking-wider opacity-70 block">
+                            Código HTML o SVG
+                          </label>
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-[11px] opacity-50">
+                              {matrixHtmlInput.length} caracteres
+                            </span>
+                            {matrixHtmlInput && (
+                              <>
+                                <span className="opacity-30">|</span>
+                                <button
+                                  type="button"
+                                  onClick={handleClearMatrixEditor}
+                                  className="text-[11px] text-red-500 font-bold hover:underline cursor-pointer"
+                                  title="Vaciar el editor de código"
+                                >
+                                  Limpiar editor
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </div>
+
+                        <textarea
+                          rows={11}
+                          value={matrixHtmlInput}
+                          onChange={(e) => setMatrixHtmlInput(e.target.value)}
+                          placeholder="Pega aquí el código HTML o SVG..."
+                          className={`w-full p-4 rounded-xl font-mono text-xs leading-relaxed outline-none border transition-colors resize-y ${
+                            isNegative ? 'bg-black/60 border-white/10 text-emerald-400 focus:border-[#3D80FD]' : 'bg-gray-900 text-emerald-300 border-black/10 focus:border-[#3D80FD]'
+                          }`}
+                          spellCheck={false}
+                        />
+                      </div>
+
+                      {/* Toggles */}
+                      <div className="space-y-2.5 pt-1">
+                        <label className="flex items-center gap-3 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={siteConfig.applyMatrixHtmlToServices !== false}
+                            onChange={(e) => {
+                              const updated = { ...siteConfig, applyMatrixHtmlToServices: e.target.checked };
+                              setSiteConfig(updated);
+                              saveSiteConfig(updated);
+                            }}
+                            className="w-4 h-4 rounded text-[#3D80FD] focus:ring-[#3D80FD] cursor-pointer"
+                          />
+                          <span className="text-xs font-semibold">
+                            Aplicar al pulsar "Integrar con Marca Matrix" en los 12 servicios
+                          </span>
+                        </label>
+
+                        <label className="flex items-center gap-3 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={siteConfig.applyMatrixHtmlToHero || false}
+                            onChange={(e) => {
+                              const updated = { ...siteConfig, applyMatrixHtmlToHero: e.target.checked };
+                              setSiteConfig(updated);
+                              saveSiteConfig(updated);
+                            }}
+                            className="w-4 h-4 rounded text-[#3D80FD] focus:ring-[#3D80FD] cursor-pointer"
+                          />
+                          <span className="text-xs font-semibold">
+                            Aplicar también como Isotipo Maestro en la página de Inicio (Hero)
+                          </span>
+                        </label>
+
+                        <label className="flex items-center gap-3 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={siteConfig.showIsotipoContainer || false}
+                            onChange={(e) => {
+                              const updated = { ...siteConfig, showIsotipoContainer: e.target.checked };
+                              setSiteConfig(updated);
+                              saveSiteConfig(updated);
+                            }}
+                            className="w-4 h-4 rounded text-[#3D80FD] focus:ring-[#3D80FD] cursor-pointer"
+                          />
+                          <span className="text-xs font-semibold">
+                            Mostrar recuadro / tarjeta contenedora para el Isotipo (opcional)
+                          </span>
+                        </label>
+                      </div>
+
+                      {/* Botones de acción directos */}
+                      <div className="flex flex-wrap items-center gap-3 pt-2">
+                        <button
+                          type="button"
+                          onClick={() => handleSaveMatrixHtml()}
+                          className="px-6 py-3 rounded-xl font-bold uppercase tracking-wider text-xs bg-[#3D80FD] text-white hover:bg-blue-600 transition-colors shadow-lg flex items-center gap-2 cursor-pointer"
+                        >
+                          <CheckCircle2 className="w-4 h-4" />
+                          <span>Guardar Código y Aplicar al Sitio</span>
+                        </button>
+
+                        {matrixHtmlInput && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard.writeText(matrixHtmlInput);
+                              showToast('Código copiado al portapapeles.');
+                            }}
+                            className={`px-4 py-3 rounded-xl font-bold text-xs border transition-colors flex items-center gap-2 cursor-pointer ${
+                              isNegative ? 'border-white/10 hover:bg-white/5' : 'border-black/10 hover:bg-black/5'
+                            }`}
+                          >
+                            <Copy className="w-4 h-4 text-[#3D80FD]" />
+                            <span>Copiar Código</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Right Column: Direct Live Preview */}
+                    <div className="lg:col-span-5 flex flex-col items-center justify-start space-y-4">
+                      <div className="w-full flex items-center justify-between flex-wrap gap-2">
+                        <span className="text-xs font-bold uppercase tracking-wider opacity-70 flex items-center gap-1.5">
+                          <Eye className="w-3.5 h-3.5 text-[#3D80FD]" />
+                          <span>Vista Previa en Tiempo Real</span>
+                        </span>
+
+                        <div className="flex items-center gap-1.5">
+                          {/* Replay animation button */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setPreviewRefreshKey((k) => k + 1);
+                              showToast('Animación reiniciada en la vista previa.');
+                            }}
+                            className={`text-[11px] px-2.5 py-1 rounded-lg border flex items-center gap-1 cursor-pointer font-medium ${
+                              isNegative ? 'border-white/10 bg-white/5 hover:bg-white/10' : 'border-black/10 bg-black/5 hover:bg-black/10'
+                            }`}
+                            title="Reiniciar animación"
+                          >
+                            <RotateCcw className="w-3 h-3 text-[#3D80FD]" />
+                            <span>Reiniciar</span>
+                          </button>
+
+                          {/* Dark/Light toggle for preview box */}
+                          <button
+                            type="button"
+                            onClick={() => setMatrixPreviewNegative(!matrixPreviewNegative)}
+                            className={`text-[11px] px-2.5 py-1 rounded-lg border flex items-center gap-1 cursor-pointer ${
+                              isNegative ? 'border-white/10 bg-white/5' : 'border-black/10 bg-black/5'
+                            }`}
+                            title="Alternar fondo claro / oscuro de la vista previa"
+                          >
+                            {matrixPreviewNegative ? <Sun className="w-3 h-3 text-amber-400" /> : <Moon className="w-3 h-3 text-blue-400" />}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Preview Box Container */}
+                      <div
+                        className={`w-full max-w-[360px] aspect-square rounded-2xl border shadow-inner overflow-hidden flex items-center justify-center p-3 relative transition-colors ${
+                          matrixPreviewNegative ? 'bg-[#060C04] border-[#FEFAE8]/15' : 'bg-[#FEFAE8] border-[#060C04]/15'
+                        }`}
+                      >
+                        {matrixHtmlInput.trim() ? (
+                          <iframe
+                            key={`preview-${matrixPreviewNegative}-${previewRefreshKey}-${matrixHtmlInput.length}`}
+                            srcDoc={formatMatrixHtmlDoc(matrixHtmlInput.trim(), matrixPreviewNegative)}
+                            title="Vista Previa Marca Matrix"
+                            className="w-full h-full border-0 pointer-events-auto bg-transparent"
+                            sandbox="allow-scripts allow-same-origin"
+                          />
+                        ) : (
+                          <div className="text-center p-6 space-y-3 opacity-70">
+                            <FileCode className="w-10 h-10 mx-auto opacity-40 text-[#3D80FD]" />
+                            <p className="text-xs">El editor está vacío.</p>
+                            <button
+                              type="button"
+                              onClick={handleSelectOriginal}
+                              className="px-3 py-1.5 rounded-lg bg-[#3D80FD] text-white text-[11px] font-bold flex items-center gap-1.5 mx-auto cursor-pointer shadow-sm hover:bg-blue-600"
+                            >
+                              <Sparkles className="w-3.5 h-3.5" />
+                              <span>Cargar Isotipo Maestro Original</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="text-center space-y-1">
+                        <p className="font-mono text-[11px] text-[#3D80FD] font-semibold">
+                          Ajuste Automático: 100% Proporcional y Centrado
+                        </p>
+                        <p className="text-[10px] opacity-60">
+                          {matrixHtmlInput.trim() === ORIGINAL_ISOTIPO_MAESTRO_HTML
+                            ? 'Renderizando código oficial del Isotipo Maestro Original (13 formas).'
+                            : 'Renderizando código HTML o SVG activo en el editor.'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
               {/* CONTROL DE ANIMACIÓN DE FONDO DEL HERO PRINCIPAL (MOTION MATRIX v3.0) */}
               <div className={`p-6 sm:p-7 rounded-3xl border space-y-6 ${
                 isNegative ? 'bg-white/5 border-white/10' : 'bg-blue-50/40 border-blue-500/20'
@@ -1142,18 +1693,18 @@ export const AdminPanel: React.FC<{
                   <div>
                     <span className="font-bold text-sm block">Estado de la Animación en el Hero</span>
                     <span className="text-xs opacity-60">
-                      {siteConfig.heroMotion?.enabled !== false ? 'Activa y visible en la sección de inicio.' : 'Oculta (fondo plano neutro).'}
+                      {siteConfig.heroMotionBackground?.enabled !== false ? 'Activa y visible en la sección de inicio.' : 'Oculta (fondo plano neutro).'}
                     </span>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
                       type="checkbox"
-                      checked={siteConfig.heroMotion?.enabled !== false}
+                      checked={siteConfig.heroMotionBackground?.enabled !== false}
                       onChange={(e) =>
                         setSiteConfig({
                           ...siteConfig,
-                          heroMotion: {
-                            ...(siteConfig.heroMotion || {
+                          heroMotionBackground: {
+                            ...(siteConfig.heroMotionBackground || {
                               intensity: 0.35,
                               speed: 1.0,
                               showDeepOrb: true,
@@ -1171,7 +1722,7 @@ export const AdminPanel: React.FC<{
                 </div>
 
                 {/* Sub-controls when enabled */}
-                {siteConfig.heroMotion?.enabled !== false && (
+                {siteConfig.heroMotionBackground?.enabled !== false && (
                   <div className="space-y-6 pt-2">
                     {/* Layer Toggles */}
                     <div>
@@ -1184,12 +1735,12 @@ export const AdminPanel: React.FC<{
                         }`}>
                           <input
                             type="checkbox"
-                            checked={siteConfig.heroMotion?.showDeepOrb !== false}
+                            checked={siteConfig.heroMotionBackground?.showDeepOrb !== false}
                             onChange={(e) =>
                               setSiteConfig({
                                 ...siteConfig,
-                                heroMotion: {
-                                  ...siteConfig.heroMotion,
+                                heroMotionBackground: {
+                                  ...siteConfig.heroMotionBackground,
                                   showDeepOrb: e.target.checked
                                 }
                               })
@@ -1207,12 +1758,12 @@ export const AdminPanel: React.FC<{
                         }`}>
                           <input
                             type="checkbox"
-                            checked={siteConfig.heroMotion?.showLightOrb !== false}
+                            checked={siteConfig.heroMotionBackground?.showLightOrb !== false}
                             onChange={(e) =>
                               setSiteConfig({
                                 ...siteConfig,
-                                heroMotion: {
-                                  ...siteConfig.heroMotion,
+                                heroMotionBackground: {
+                                  ...siteConfig.heroMotionBackground,
                                   showLightOrb: e.target.checked
                                 }
                               })
@@ -1230,12 +1781,12 @@ export const AdminPanel: React.FC<{
                         }`}>
                           <input
                             type="checkbox"
-                            checked={siteConfig.heroMotion?.showGridPattern !== false}
+                            checked={siteConfig.heroMotionBackground?.showGridPattern !== false}
                             onChange={(e) =>
                               setSiteConfig({
                                 ...siteConfig,
-                                heroMotion: {
-                                  ...siteConfig.heroMotion,
+                                heroMotionBackground: {
+                                  ...siteConfig.heroMotionBackground,
                                   showGridPattern: e.target.checked
                                 }
                               })
@@ -1258,7 +1809,7 @@ export const AdminPanel: React.FC<{
                             Intensidad / Opacidad del Brillo
                           </label>
                           <span className="font-mono text-xs font-bold">
-                            {Math.round((siteConfig.heroMotion?.intensity ?? 0.35) * 100)}%
+                            {Math.round((siteConfig.heroMotionBackground?.intensity ?? 0.35) * 100)}%
                           </span>
                         </div>
                         <input
@@ -1266,12 +1817,12 @@ export const AdminPanel: React.FC<{
                           min="0.1"
                           max="1.0"
                           step="0.05"
-                          value={siteConfig.heroMotion?.intensity ?? 0.35}
+                          value={siteConfig.heroMotionBackground?.intensity ?? 0.35}
                           onChange={(e) =>
                             setSiteConfig({
                               ...siteConfig,
-                              heroMotion: {
-                                ...siteConfig.heroMotion,
+                              heroMotionBackground: {
+                                ...siteConfig.heroMotionBackground,
                                 intensity: parseFloat(e.target.value)
                               }
                             })
@@ -1286,7 +1837,7 @@ export const AdminPanel: React.FC<{
                             Velocidad de Movimiento
                           </label>
                           <span className="font-mono text-xs font-bold">
-                            {(siteConfig.heroMotion?.speed ?? 1.0).toFixed(1)}x
+                            {(siteConfig.heroMotionBackground?.speed ?? 1.0).toFixed(1)}x
                           </span>
                         </div>
                         <input
@@ -1294,12 +1845,12 @@ export const AdminPanel: React.FC<{
                           min="0.5"
                           max="2.5"
                           step="0.25"
-                          value={siteConfig.heroMotion?.speed ?? 1.0}
+                          value={siteConfig.heroMotionBackground?.speed ?? 1.0}
                           onChange={(e) =>
                             setSiteConfig({
                               ...siteConfig,
-                              heroMotion: {
-                                ...siteConfig.heroMotion,
+                              heroMotionBackground: {
+                                ...siteConfig.heroMotionBackground,
                                 speed: parseFloat(e.target.value)
                               }
                             })
@@ -1327,41 +1878,93 @@ export const AdminPanel: React.FC<{
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Selector Fondo */}
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase tracking-wider opacity-60 block">
-                      Fondo del Hero
-                    </label>
-                    <select
-                      value={siteConfig.activeBackgroundHtmlId || ''}
-                      onChange={(e) => setSiteConfig({...siteConfig, activeBackgroundHtmlId: e.target.value || null})}
-                      className={`w-full p-3 rounded-xl text-sm outline-none border cursor-pointer transition-colors ${
-                        isNegative ? 'bg-black/50 border-white/10 text-white' : 'bg-black/5 border-black/10 text-black'
-                      }`}
-                    >
-                      <option value="">Matrix por defecto (Natual)</option>
-                      {siteConfig.customHtmlHistory?.map(html => (
-                        <option key={html.id} value={html.id}>{html.name}</option>
-                      ))}
-                    </select>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold uppercase tracking-wider opacity-60 block">
+                        Fondo del Hero
+                      </label>
+                      <select
+                        value={siteConfig.activeBackgroundHtmlId || ''}
+                        onChange={(e) => setSiteConfig({...siteConfig, activeBackgroundHtmlId: e.target.value || null})}
+                        className={`w-full p-3 rounded-xl text-sm outline-none border cursor-pointer transition-colors ${
+                          isNegative ? 'bg-black/50 border-white/10 text-white' : 'bg-black/5 border-black/10 text-black'
+                        }`}
+                      >
+                        <option value="">Matrix por defecto (Natual)</option>
+                        {siteConfig.customHtmlHistory?.map(html => (
+                          <option key={html.id} value={html.id}>{html.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    {siteConfig.activeBackgroundHtmlId && (
+                      <div className={`p-4 rounded-xl border ${isNegative ? 'bg-black/20 border-white/10' : 'bg-white border-black/5'}`}>
+                        <div className="flex justify-between items-center mb-2">
+                          <label className="text-[10px] font-bold uppercase tracking-wider opacity-60">Opacidad del Fondo</label>
+                          <span className="font-mono text-xs font-bold">{Math.round((siteConfig.heroMotionBackground?.intensity ?? 1.0) * 100)}%</span>
+                        </div>
+                        <input
+                          type="range"
+                          min="0.1"
+                          max="1.0"
+                          step="0.05"
+                          value={siteConfig.heroMotionBackground?.intensity ?? 1.0}
+                          onChange={(e) => setSiteConfig({
+                            ...siteConfig,
+                            heroMotionBackground: {
+                              ...siteConfig.heroMotionBackground!,
+                              intensity: parseFloat(e.target.value)
+                            }
+                          })}
+                          className="w-full accent-[#3D80FD] cursor-pointer"
+                        />
+                      </div>
+                    )}
                   </div>
 
                   {/* Selector Foreground */}
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase tracking-wider opacity-60 block">
-                      Visual Frontal (Reemplaza Isotipo)
-                    </label>
-                    <select
-                      value={siteConfig.activeForegroundHtmlId || ''}
-                      onChange={(e) => setSiteConfig({...siteConfig, activeForegroundHtmlId: e.target.value || null})}
-                      className={`w-full p-3 rounded-xl text-sm outline-none border cursor-pointer transition-colors ${
-                        isNegative ? 'bg-black/50 border-white/10 text-white' : 'bg-black/5 border-black/10 text-black'
-                      }`}
-                    >
-                      <option value="">Isotipo Maestro por defecto</option>
-                      {siteConfig.customHtmlHistory?.map(html => (
-                        <option key={html.id} value={html.id}>{html.name}</option>
-                      ))}
-                    </select>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold uppercase tracking-wider opacity-60 block">
+                        Visual Frontal (Reemplaza Isotipo)
+                      </label>
+                      <select
+                        value={siteConfig.activeForegroundHtmlId || ''}
+                        onChange={(e) => setSiteConfig({...siteConfig, activeForegroundHtmlId: e.target.value || null})}
+                        className={`w-full p-3 rounded-xl text-sm outline-none border cursor-pointer transition-colors ${
+                          isNegative ? 'bg-black/50 border-white/10 text-white' : 'bg-black/5 border-black/10 text-black'
+                        }`}
+                      >
+                        <option value="">Isotipo Maestro por defecto</option>
+                        {siteConfig.customHtmlHistory?.map(html => (
+                          <option key={html.id} value={html.id}>{html.name}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {siteConfig.activeForegroundHtmlId && (
+                      <div className={`p-4 rounded-xl border ${isNegative ? 'bg-black/20 border-white/10' : 'bg-white border-black/5'}`}>
+                        <div className="flex justify-between items-center mb-2">
+                          <label className="text-[10px] font-bold uppercase tracking-wider opacity-60">Opacidad Visual Frontal</label>
+                          <span className="font-mono text-xs font-bold">{Math.round((siteConfig.heroMotionForeground?.intensity ?? 1.0) * 100)}%</span>
+                        </div>
+                        <input
+                          type="range"
+                          min="0.1"
+                          max="1.0"
+                          step="0.05"
+                          value={siteConfig.heroMotionForeground?.intensity ?? 1.0}
+                          onChange={(e) => setSiteConfig({
+                            ...siteConfig,
+                            heroMotionForeground: {
+                              ...siteConfig.heroMotionForeground!,
+                              intensity: parseFloat(e.target.value)
+                            }
+                          })}
+                          className="w-full accent-[#3D80FD] cursor-pointer"
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
                 
@@ -1425,6 +2028,40 @@ export const AdminPanel: React.FC<{
                 </div>
               </div>
 
+              {/* Contenedor Exterior de Isotipos Animados */}
+              <div className={`p-6 sm:p-7 rounded-3xl border space-y-4 ${
+                isNegative ? 'bg-white/5 border-white/10' : 'bg-white border-black/10'
+              }`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-aeonik font-bold text-lg">Recuadro Exterior de Isotipos Animados</h3>
+                    <p className="text-xs opacity-60 mt-1 max-w-2xl">
+                      Aplica o retira el contenedor/recuadro exterior (tarjeta con bordes, fondo y sombras) que envuelve al logotipo animado en la sección principal (Hero) y en las páginas de servicios. Al desactivarlo, las 13 formas geométricas, los botones de reproducción y los textos descriptivos flotan directamente sobre el fondo del lienzo en modo claro y oscuro.
+                    </p>
+                    <div className="mt-2 flex items-center gap-2">
+                      <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
+                        siteConfig.showIsotipoContainer
+                          ? 'bg-[#3D80FD]/10 text-[#3D80FD]'
+                          : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                      }`}>
+                        {siteConfig.showIsotipoContainer
+                          ? 'Tarjeta contenedora activa (con recuadro)'
+                          : 'Lienzo libre activo (elementos flotando sin recuadro)'}
+                      </span>
+                    </div>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer ml-4 shrink-0">
+                    <input 
+                      type="checkbox" 
+                      className="sr-only peer"
+                      checked={Boolean(siteConfig.showIsotipoContainer)}
+                      onChange={e => setSiteConfig({...siteConfig, showIsotipoContainer: e.target.checked})}
+                    />
+                    <div className="w-14 h-7 bg-gray-300 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-[#3D80FD]"></div>
+                  </label>
+                </div>
+              </div>
+
               {/* Visibilidad de Secciones */}
               <div className="space-y-4">
                 <h3 className="font-bold text-base">Visibilidad de Secciones en Home</h3>
@@ -1434,6 +2071,7 @@ export const AdminPanel: React.FC<{
                     { key: 'showArchitecture', label: 'Arquitectura de la Luz' },
                     { key: 'showServices', label: 'Grilla de 12 Servicios' },
                     { key: 'showDifferentiators', label: 'Diferenciadores' },
+                    { key: 'showColors', label: 'Sistema Cromático (Colores)' },
                     { key: 'showTimeline', label: 'Línea de Tiempo' },
                     { key: 'showContact', label: 'Sección de Contacto' }
                   ].map(sec => (
