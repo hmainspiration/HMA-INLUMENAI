@@ -59,11 +59,12 @@ export const ServicesGrid: React.FC<ServicesGridProps> = ({
                   <div className="flex items-center gap-2.5">
                     {/* Contained Badge for Letter */}
                     <div
-                      className="w-8 h-8 rounded-lg flex items-center justify-center font-aeonik text-sm font-bold shadow-xs"
+                      className="w-8 h-8 rounded-lg flex items-center justify-center font-aeonik text-sm font-bold shadow-xs notranslate"
                       style={{
                         backgroundColor: isNegative ? `${service.luzColor}22` : `${service.luzColor}15`,
                         color: service.luzColor
                       }}
+                      translate="no"
                     >
                       {service.letter}
                     </div>
@@ -82,7 +83,7 @@ export const ServicesGrid: React.FC<ServicesGridProps> = ({
 
                 {/* Service Name: Dosis Bold (Section 2.3) */}
                 <div>
-                  <h3 className="font-dosis text-2xl font-bold tracking-tight text-balance group-hover:text-[#3D80FD] transition-colors">
+                  <h3 className="font-dosis text-2xl font-bold tracking-tight text-balance group-hover:text-[#3D80FD] transition-colors notranslate" translate="no">
                     {service.name}
                   </h3>
                   <p className="font-general text-xs font-medium text-opacity-80 mt-1 opacity-70">

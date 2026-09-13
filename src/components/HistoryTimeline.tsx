@@ -67,7 +67,9 @@ export const HistoryTimeline: React.FC<HistoryTimelineProps> = ({
     setIsPlaying(false);
   };
 
-  const filteredEras = EVOLUTION_ERAS.filter((era) => {
+  const currentEras = config.evolutionEras && config.evolutionEras.length > 0 ? config.evolutionEras : EVOLUTION_ERAS;
+
+  const filteredEras = currentEras.filter((era) => {
     if (filter === 'decade') return Number(era.year) <= 2026;
     if (filter === 'projection') return isProjection(era);
     if (selectedYear !== null) return era.year === selectedYear;
@@ -186,7 +188,7 @@ export const HistoryTimeline: React.FC<HistoryTimelineProps> = ({
                 </div>
                 
                 {/* Hour Nodes */}
-                {EVOLUTION_ERAS.map((era, i) => {
+                {currentEras.map((era, i) => {
                   const hour = i + 1;
                   const angle = (hour * 30 - 90) * (Math.PI / 180);
                   const radius = 42; 
@@ -245,7 +247,7 @@ export const HistoryTimeline: React.FC<HistoryTimelineProps> = ({
                   : 'bg-white border-amber-300/40 text-[#060C04] shadow-xl'
               }`}>
                 {(() => {
-                  const activeEra = EVOLUTION_ERAS[clockHour - 1];
+                  const activeEra = currentEras[clockHour - 1];
                   if (!activeEra) return null;
                   
                   return (
@@ -484,7 +486,7 @@ export const HistoryTimeline: React.FC<HistoryTimelineProps> = ({
 
               {/* Timeline Quick Navigator Bar (Pill buttons for each year) */}
               <div className="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-thin">
-                {EVOLUTION_ERAS.map((era) => {
+                {currentEras.map((era) => {
                   const isSel = selectedYear === era.year;
                   return (
                     <button

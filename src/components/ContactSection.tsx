@@ -215,7 +215,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
                   <p className={`type-body text-sm max-w-md mx-auto ${
                     isNegative ? 'text-[#FEFAE8]/80' : 'text-[#060C04]/80'
                   }`}>
-                    Gracias por ponerte en contacto con HMA INLUMENAI. Un director de disciplina revisará tu solicitud y se comunicará en un plazo menor a 24 horas.
+                    Gracias por ponerte en contacto con <span className="notranslate" translate="no">HMA INLUMENAI</span>. Un director de disciplina revisará tu solicitud y se comunicará en un plazo menor a 24 horas.
                   </p>
                   <button
                     onClick={() => setSubmitted(false)}
@@ -328,7 +328,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
                       }`}
                     >
                       <option value="general">Integración Multiservicios (Ecosistema Completo)</option>
-                      {SERVICES.map((s) => (
+                      {SERVICES.filter(s => !config?.disabledServicesInquiries?.includes(s.id)).map((s) => (
                         <option key={s.id} value={s.name}>
                           {s.letter} · {s.fullServiceName} ({s.tagline})
                         </option>

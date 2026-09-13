@@ -18,7 +18,7 @@ export interface EvolutionEraItem {
 
 export type EvolutionEra = EvolutionEraItem;
 
-const DEFAULT_EVOLUTION_ERAS: EvolutionEraItem[] = [
+export const DEFAULT_EVOLUTION_ERAS: EvolutionEraItem[] = [
   {
     year: '2016',
     yearCode: '16',

@@ -109,7 +109,8 @@ export const Footer: React.FC<FooterProps> = ({
                 <li key={s.id}>
                   <button
                     onClick={() => onSelectService(s.id)}
-                    className="hover:text-[#3D80FD] cursor-pointer inline-flex items-center gap-1.5"
+                    className="hover:text-[#3D80FD] cursor-pointer inline-flex items-center gap-1.5 notranslate"
+                    translate="no"
                   >
                     <span className="font-bold font-aeonik text-[11px]" style={{ color: s.luzColor }}>{s.letter}</span>
                     <span>· {s.name}</span>
@@ -129,7 +130,8 @@ export const Footer: React.FC<FooterProps> = ({
                 <li key={s.id}>
                   <button
                     onClick={() => onSelectService(s.id)}
-                    className="hover:text-[#3D80FD] cursor-pointer inline-flex items-center gap-1.5"
+                    className="hover:text-[#3D80FD] cursor-pointer inline-flex items-center gap-1.5 notranslate"
+                    translate="no"
                   >
                     <span className="font-bold font-aeonik text-[11px]" style={{ color: s.luzColor }}>{s.letter}</span>
                     <span>· {s.name}</span>
@@ -254,7 +256,7 @@ export const Footer: React.FC<FooterProps> = ({
           </div>
 
           <p className={`font-general text-xs ${isNegative ? 'text-[#FEFAE8]/50' : 'text-[#060C04]/50'}`}>
-            © 2016–2026 HMA INLUMENAI. Todos los derechos reservados. {config?.showLocation && config?.locationAddress ? config.locationAddress : 'Servicio Actualmente en Línea'}.
+            © 2016–2026 <span className="notranslate" translate="no">HMA INLUMENAI</span>. Todos los derechos reservados. {config?.showLocation && config?.locationAddress ? config.locationAddress : 'Servicio Actualmente en Línea'}.
           </p>
         </div>
       </div>

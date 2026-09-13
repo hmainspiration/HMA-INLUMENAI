@@ -1,4 +1,7 @@
 
+import type { EvolutionEraItem } from '../data/evolutionEras';
+import { DEFAULT_EVOLUTION_ERAS } from '../data/evolutionEras';
+
 export interface CustomHtmlEntry {
   id: string;
   name: string;
@@ -107,9 +110,13 @@ export interface SiteConfig {
 
   // Kill Switch for Contact Forms
   enableInquiries: boolean;
+  disabledServicesInquiries?: string[];
 
   // Visual container toggle for animated isotypes
   showIsotipoContainer?: boolean;
+
+  // Editable timeline eras
+  evolutionEras?: EvolutionEraItem[];
 
   // Custom Matrix HTML (Integración con Marca Matrix en todos los servicios y Hero)
   customMatrixHtml?: string;
@@ -218,7 +225,9 @@ export const getDefaultConfig = (): SiteConfig => ({
   showTimeline: true,
   showColors: true,
   showContact: true,
-  enableInquiries: true
+  enableInquiries: true,
+  disabledServicesInquiries: [],
+  evolutionEras: DEFAULT_EVOLUTION_ERAS
 });
 
 export const getSiteConfig = (): SiteConfig => {

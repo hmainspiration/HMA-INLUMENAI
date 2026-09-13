@@ -13,7 +13,7 @@ export const Differentiators: React.FC<DifferentiatorsProps> = ({ isNegative = f
     {
       icon: <ShieldCheck className="w-6 h-6 text-[#3D80FD]" />,
       title: config.diffCard1Title || 'Un ecosistema, no una lista de proveedores',
-      description: config.diffCard1Desc || 'Resolver un proyecto de marca hoy requiere agencias de diseño, productoras audiovisuales, programadores y consultores de imprenta. HMA INLUMENAI integra todas las disciplinas bajo una misma dirección artística y de calidad.'
+      description: config.diffCard1Desc || 'Resolver un proyecto de marca hoy requiere agencias de diseño, productoras audiovisuales, programadores y consultores de imprenta. <span class="notranslate" translate="no">HMA INLUMENAI</span> integra todas las disciplinas bajo una misma dirección artística y de calidad.'
     },
     {
       icon: <Puzzle className="w-6 h-6 text-[#108591]" />,
@@ -61,11 +61,12 @@ export const Differentiators: React.FC<DifferentiatorsProps> = ({ isNegative = f
               <h3 className="font-dosis text-2xl font-bold mb-3">
                 {p.title}
               </h3>
-              <p className={`font-general text-sm leading-relaxed ${
-                isNegative ? 'text-[#FEFAE8]/75' : 'text-[#060C04]/75'
-              }`}>
-                {p.description}
-              </p>
+              <p 
+                className={`font-general text-sm leading-relaxed ${
+                  isNegative ? 'text-[#FEFAE8]/75' : 'text-[#060C04]/75'
+                }`}
+                dangerouslySetInnerHTML={{ __html: p.description }}
+              />
             </div>
           </div>
         ))}

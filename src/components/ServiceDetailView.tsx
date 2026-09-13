@@ -173,8 +173,9 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({
               {/* Service Badges */}
               <div className="flex flex-wrap items-center gap-3">
                 <span
-                  className="px-3 py-1 rounded-full text-xs font-general font-bold uppercase tracking-wider text-white shadow-xs"
+                  className="px-3 py-1 rounded-full text-xs font-general font-bold uppercase tracking-wider text-white shadow-xs notranslate"
                   style={{ backgroundColor: service.luzColor }}
+                  translate="no"
                 >
                   Letra {service.letter} · HMAINLUMENAI
                 </span>
@@ -191,7 +192,7 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({
 
               {/* Service Display Title */}
               <div>
-                <h1 className="type-display" style={{ color: service.luzColor }}>
+                <h1 className="type-display notranslate" style={{ color: service.luzColor }} translate="no">
                   {service.fullServiceName}
                 </h1>
                 <h2 className="type-h2 mt-2 opacity-90">
@@ -213,7 +214,7 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({
                   className="btn-primary btn-lg text-white shadow-md cursor-pointer flex items-center gap-2"
                   style={{ backgroundColor: service.luzColor }}
                 >
-                  <span>Solicitar Servicio {service.name}</span>
+                  <span>Solicitar Servicio <span className="notranslate" translate="no">{service.name}</span></span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
 
@@ -406,7 +407,7 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({
                   : 'Volver al Ecosistema HMA (Transición en Vivo)'}
               </span>
             </button>
-            {config?.enableInquiries !== false && (
+            {config?.enableInquiries !== false && !config?.disabledServicesInquiries?.includes(service.id) && (
               <button
                 onClick={() => onContactService(service.name)}
                 className={`btn-primary btn-lg border cursor-pointer ${
@@ -435,7 +436,7 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({
               <button
                 key={s.id}
                 onClick={() => onSelectOtherService(s.id)}
-                className={`p-3.5 rounded-xl border text-left transition-all hover:scale-102 cursor-pointer ${
+                className={`p-3.5 rounded-xl border text-left transition-all hover:scale-102 cursor-pointer notranslate ${
                   isNegative
                     ? 'bg-[#060C04] border-[#FEFAE8]/10 hover:border-[#FEFAE8]/30'
                     : 'bg-white border-[#060C04]/8 hover:border-[#060C04]/20 shadow-xs'
@@ -444,6 +445,7 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({
                   borderLeftColor: s.luzColor,
                   borderLeftWidth: '3px'
                 }}
+                translate="no"
               >
                 <div className="font-aeonik text-sm font-bold" style={{ color: s.luzColor }}>
                   {s.letter} · {s.name}

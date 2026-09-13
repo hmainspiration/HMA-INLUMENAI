@@ -48,7 +48,7 @@ export const ArchitectureSection: React.FC<ArchitectureSectionProps> = ({
             </div>
             <h3 className="type-h3 mb-2">{config.archCard1Title || '1 Marca Matrix'}</h3>
             <p className={`type-body text-sm ${isNegative ? 'text-[#FEFAE8]/75' : 'text-[#060C04]/75'}`}>
-              <span dangerouslySetInnerHTML={{ __html: config.archCard1Desc.replace('HMA INLUMENAI', '<strong>HMA INLUMENAI</strong>') }} />
+              <span dangerouslySetInnerHTML={{ __html: config.archCard1Desc.replace('HMA INLUMENAI', '<strong class="notranslate" translate="no">HMA INLUMENAI</strong>') }} />
             </p>
             <div className="mt-6 pt-4 border-t border-current/10 font-general text-xs font-semibold text-[#3D80FD]">
               {config.archCard1Sub || '"Un ecosistema, no una lista de proveedores."'}
@@ -64,7 +64,7 @@ export const ArchitectureSection: React.FC<ArchitectureSectionProps> = ({
             </div>
             <h3 className="type-h3 mb-2">{config.archCard2Title || '12 Servicios'}</h3>
             <p className={`type-body text-sm ${isNegative ? 'text-[#FEFAE8]/75' : 'text-[#060C04]/75'}`}>
-              <span dangerouslySetInnerHTML={{ __html: config.archCard2Desc.replace('HMAINLUMENAI', '<strong>HMAINLUMENAI</strong>') }} />
+              <span dangerouslySetInnerHTML={{ __html: config.archCard2Desc.replace('HMAINLUMENAI', '<strong class="notranslate" translate="no">HMAINLUMENAI</strong>') }} />
             </p>
             <div className="mt-6 pt-4 border-t border-current/10 font-general text-xs font-semibold text-[#2D60C1]">
               {config.archCard2Sub || 'De Heritage (H) a Illustrations (I)'}
@@ -98,7 +98,7 @@ export const ArchitectureSection: React.FC<ArchitectureSectionProps> = ({
                 El Acrónimo de Identidad
               </p>
               <h4 className="font-dosis text-xl font-bold mt-0.5">
-                Las 12 Letras del Ecosistema HMAINLUMENAI
+                Las 12 Letras del Ecosistema <span className="notranslate" translate="no">HMAINLUMENAI</span>
               </h4>
             </div>
             <p className="text-xs opacity-60 font-general">
@@ -112,7 +112,7 @@ export const ArchitectureSection: React.FC<ArchitectureSectionProps> = ({
               <button
                 key={s.id}
                 onClick={() => onSelectService(s.id)}
-                className={`p-3 rounded-xl border flex flex-col items-center justify-center transition-all group cursor-pointer ${
+                className={`p-3 rounded-xl border flex flex-col items-center justify-center transition-all group cursor-pointer notranslate ${
                   isNegative
                     ? 'hover:bg-[#FEFAE8]/10 border-[#FEFAE8]/10'
                     : 'hover:bg-[#060C04]/5 border-[#060C04]/10'
@@ -122,6 +122,7 @@ export const ArchitectureSection: React.FC<ArchitectureSectionProps> = ({
                   borderLeftWidth: '3px'
                 }}
                 title={`${s.letter} · ${s.name}`}
+                translate="no"
               >
                 <span className="font-aeonik text-2xl font-bold group-hover:scale-110 transition-transform" style={{ color: s.luzColor }}>
                   {s.letter}

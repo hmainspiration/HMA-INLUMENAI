@@ -130,7 +130,7 @@ export const BrandWordmark: React.FC<{
   isNegative?: boolean;
 }> = ({ className = '', isNegative = false }) => {
   return (
-    <div className={`flex flex-col select-none ${className}`}>
+    <div className={`flex flex-col select-none notranslate ${className}`} translate="no">
       <span
         className={`font-aeonik text-xs font-bold tracking-[0.22em] ${
           isNegative ? 'text-[#FEFAE8]/60' : 'text-[#2D60C1]'

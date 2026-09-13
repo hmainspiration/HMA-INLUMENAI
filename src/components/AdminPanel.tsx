@@ -92,6 +92,7 @@ export const AdminPanel: React.FC<{
   const [siteConfig, setSiteConfig] = useState<SiteConfig | null>(null);
 
   // Portfolio State
+  const [expandedEraIndex, setExpandedEraIndex] = useState<number | null>(null);
   const [portfolioConfig, setPortfolioConfig] = useState<Record<string, ServicePortfolioConfig>>({});
   const [selectedServiceId, setSelectedServiceId] = useState<string>(SERVICES[0].id);
   const [autoFiles, setAutoFiles] = useState<string[]>([]);
@@ -848,7 +849,7 @@ export const AdminPanel: React.FC<{
                       }}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-aeonik text-xs font-bold" style={{ color: s.luzColor }}>
+                        <span className="font-aeonik text-xs font-bold notranslate" style={{ color: s.luzColor }} translate="no">
                           {s.letter} · {s.name}
                         </span>
                         {isPub ? (
@@ -2005,28 +2006,7 @@ export const AdminPanel: React.FC<{
                 )}
               </div>
 
-              {/* Formularios y Botones de Solicitud (Kill Switch) */}
-              <div className={`p-6 sm:p-7 rounded-3xl border space-y-4 ${
-                isNegative ? 'bg-white/5 border-white/10' : 'bg-white border-black/10'
-              }`}>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-aeonik font-bold text-lg">Recepción de Solicitudes (Botones y Formularios)</h3>
-                    <p className="text-xs opacity-60 mt-1">
-                      Si desactivas esta opción, se ocultarán todos los botones de "Iniciar Consulta", "Enviar Solicitud" y el formulario de contacto de toda la web. Útil para pausar la recepción de nuevos clientes.
-                    </p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer ml-4 shrink-0">
-                    <input 
-                      type="checkbox" 
-                      className="sr-only peer"
-                      checked={siteConfig.enableInquiries !== false}
-                      onChange={e => setSiteConfig({...siteConfig, enableInquiries: e.target.checked})}
-                    />
-                    <div className="w-14 h-7 bg-gray-300 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-[#3D80FD]"></div>
-                  </label>
-                </div>
-              </div>
+
 
               {/* Contenedor Exterior de Isotipos Animados */}
               <div className={`p-6 sm:p-7 rounded-3xl border space-y-4 ${
@@ -2446,6 +2426,130 @@ export const AdminPanel: React.FC<{
                 </div>
               </div>
 
+              {/* Timeline Eras Editor */}
+              <div className={`p-6 sm:p-7 rounded-3xl border space-y-5 ${
+                isNegative ? 'bg-white/5 border-white/10' : 'bg-white border-black/10'
+              }`}>
+                <div className="flex items-center justify-between border-b border-inherit pb-3">
+                  <div>
+                    <h3 className="font-aeonik font-bold text-lg">Contenido de los 12 Años (2016-2027)</h3>
+                    <p className="text-xs opacity-60">Edita el título, descripción y metadatos de cada año.</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  {(siteConfig.evolutionEras || EVOLUTION_ERAS).map((era, index) => {
+                    const isExpanded = expandedEraIndex === index;
+                    return (
+                      <div key={era.year} className={`rounded-2xl border transition-all ${isNegative ? 'border-white/10' : 'border-black/10'}`}>
+                        <button
+                          type="button"
+                          onClick={() => setExpandedEraIndex(isExpanded ? null : index)}
+                          className={`w-full flex items-center justify-between p-4 cursor-pointer hover:bg-black/5 ${isExpanded ? 'border-b border-inherit bg-black/5' : ''}`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className="font-bold text-[#3D80FD]">{era.year}</span>
+                            <span className="font-semibold text-sm">{era.concept || era.title}</span>
+                          </div>
+                          <span className="text-xs opacity-50">{isExpanded ? 'Ocultar' : 'Editar'}</span>
+                        </button>
+                        
+                        {isExpanded && (
+                          <div className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="flex flex-col gap-2">
+                              <label className="text-xs font-bold opacity-60">Título Principal</label>
+                              <input
+                                type="text"
+                                value={era.title || ''}
+                                onChange={e => {
+                                  const newEras = [...(siteConfig.evolutionEras || EVOLUTION_ERAS)];
+                                  newEras[index] = { ...newEras[index], title: e.target.value };
+                                  setSiteConfig({ ...siteConfig, evolutionEras: newEras });
+                                }}
+                                className={`px-3 py-2 rounded-lg text-sm border outline-none ${isNegative ? 'bg-black/50 border-white/10' : 'bg-white border-black/10'}`}
+                              />
+                            </div>
+                            
+                            <div className="flex flex-col gap-2">
+                              <label className="text-xs font-bold opacity-60">Categoría / Etapa</label>
+                              <input
+                                type="text"
+                                value={era.category || ''}
+                                onChange={e => {
+                                  const newEras = [...(siteConfig.evolutionEras || EVOLUTION_ERAS)];
+                                  newEras[index] = { ...newEras[index], category: e.target.value };
+                                  setSiteConfig({ ...siteConfig, evolutionEras: newEras });
+                                }}
+                                className={`px-3 py-2 rounded-lg text-sm border outline-none ${isNegative ? 'bg-black/50 border-white/10' : 'bg-white border-black/10'}`}
+                              />
+                            </div>
+
+                            <div className="sm:col-span-2 flex flex-col gap-2">
+                              <label className="text-xs font-bold opacity-60">Descripción (Párrafo principal)</label>
+                              <textarea
+                                value={era.description || ''}
+                                rows={2}
+                                onChange={e => {
+                                  const newEras = [...(siteConfig.evolutionEras || EVOLUTION_ERAS)];
+                                  newEras[index] = { ...newEras[index], description: e.target.value };
+                                  setSiteConfig({ ...siteConfig, evolutionEras: newEras });
+                                }}
+                                className={`px-3 py-2 rounded-lg text-sm border outline-none resize-none ${isNegative ? 'bg-black/50 border-white/10' : 'bg-white border-black/10'}`}
+                              />
+                            </div>
+                            
+                            <div className="sm:col-span-2 flex flex-col gap-2">
+                              <label className="text-xs font-bold opacity-60">Hito / Significado (Punto de la lista)</label>
+                              <textarea
+                                value={era.meaning !== undefined ? era.meaning : (era.continuity || '')}
+                                rows={2}
+                                onChange={e => {
+                                  const newEras = [...(siteConfig.evolutionEras || EVOLUTION_ERAS)];
+                                  // Update either meaning or continuity depending on what it currently uses, 
+                                  // we will just set meaning and continuity both or just meaning. Let's just set both for safety, or use meaning.
+                                  newEras[index] = { ...newEras[index], meaning: e.target.value, continuity: e.target.value };
+                                  setSiteConfig({ ...siteConfig, evolutionEras: newEras });
+                                }}
+                                className={`px-3 py-2 rounded-lg text-sm border outline-none resize-none ${isNegative ? 'bg-black/50 border-white/10' : 'bg-white border-black/10'}`}
+                              />
+                            </div>
+                            
+                            <div className="flex flex-col gap-2">
+                              <label className="text-xs font-bold opacity-60">Evolución de Marca</label>
+                              <input
+                                type="text"
+                                value={era.brandName || ''}
+                                onChange={e => {
+                                  const newEras = [...(siteConfig.evolutionEras || EVOLUTION_ERAS)];
+                                  newEras[index] = { ...newEras[index], brandName: e.target.value };
+                                  setSiteConfig({ ...siteConfig, evolutionEras: newEras });
+                                }}
+                                className={`px-3 py-2 rounded-lg text-sm border outline-none ${isNegative ? 'bg-black/50 border-white/10' : 'bg-white border-black/10'}`}
+                              />
+                            </div>
+
+                            <div className="flex flex-col gap-2">
+                              <label className="text-xs font-bold opacity-60">Concepto / Geometría</label>
+                              <input
+                                type="text"
+                                value={era.geometry || era.concept || ''}
+                                onChange={e => {
+                                  const newEras = [...(siteConfig.evolutionEras || EVOLUTION_ERAS)];
+                                  newEras[index] = { ...newEras[index], geometry: e.target.value, concept: e.target.value };
+                                  setSiteConfig({ ...siteConfig, evolutionEras: newEras });
+                                }}
+                                className={`px-3 py-2 rounded-lg text-sm border outline-none ${isNegative ? 'bg-black/50 border-white/10' : 'bg-white border-black/10'}`}
+                              />
+                            </div>
+                            
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
               <div className="flex justify-end pt-4 border-t border-inherit">
                 <button
                   type="submit"
@@ -2524,6 +2628,73 @@ export const AdminPanel: React.FC<{
                   </button>
                 ))}
               </div>
+            </div>
+
+            {/* Configuracion de Recepcion de Solicitudes */}
+            <div className={`p-6 sm:p-7 rounded-3xl border space-y-6 ${
+              isNegative ? 'bg-white/5 border-white/10' : 'bg-white border-black/10'
+            }`}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-aeonik font-bold text-lg">Recepción Global de Solicitudes</h3>
+                  <p className="text-xs opacity-60 mt-1 max-w-2xl">
+                    Si desactivas esta opción, se ocultarán todos los botones de contacto en toda la web. Útil para pausar la recepción de nuevos clientes por completo.
+                  </p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer ml-4 shrink-0">
+                  <input 
+                    type="checkbox" 
+                    className="sr-only peer"
+                    checked={siteConfig?.enableInquiries !== false}
+                    onChange={e => {
+                      if (!siteConfig) return;
+                      const updated = {...siteConfig, enableInquiries: e.target.checked};
+                      setSiteConfig(updated);
+                      saveSiteConfig(updated);
+                    }}
+                  />
+                  <div className="w-14 h-7 bg-gray-300 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-[#3D80FD]"></div>
+                </label>
+              </div>
+
+              {siteConfig?.enableInquiries !== false && (
+                <div className="pt-5 border-t border-inherit">
+                  <div className="mb-4">
+                    <h4 className="font-bold text-sm">Desactivar Formularios Específicos</h4>
+                    <p className="text-xs opacity-60">Selecciona individualmente los servicios que <span className="font-bold text-red-500">NO</span> deben mostrar botones de cotización ni formularios (Rojo = Formulario Oculto).</p>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {SERVICES.map(s => {
+                      const isDisabled = siteConfig?.disabledServicesInquiries?.includes(s.id) || false;
+                      return (
+                        <div key={s.id} className={`flex items-center justify-between p-3 rounded-xl border ${isNegative ? 'border-white/10 bg-white/5' : 'border-black/10 bg-black/5'}`}>
+                          <span className="text-xs font-bold notranslate" style={{ color: s.luzColor }} translate="no">
+                            {s.letter} · {s.name}
+                          </span>
+                          <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                            <input 
+                              type="checkbox" 
+                              className="sr-only peer"
+                              checked={isDisabled}
+                              onChange={e => {
+                                if (!siteConfig) return;
+                                const currentDisabled = siteConfig.disabledServicesInquiries || [];
+                                const newDisabled = e.target.checked 
+                                  ? [...currentDisabled, s.id]
+                                  : currentDisabled.filter(id => id !== s.id);
+                                const updated = {...siteConfig, disabledServicesInquiries: newDisabled};
+                                setSiteConfig(updated);
+                                saveSiteConfig(updated);
+                              }}
+                            />
+                            <div className="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-red-500"></div>
+                          </label>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Inquiries Grid */}
